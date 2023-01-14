@@ -21,6 +21,10 @@ class deck():
 
     def shuffle(self):
         random.shuffle(self.deck)
+
+    def display(self):
+        for card in self.deck :
+            print(card.disp_name)
     
     def sort(self):
 

@@ -50,3 +50,6 @@ while True:
 print(colrs.c(data[0],cps=C_info))
 
 # ------- start game ---------------
+
+hand,flag = sock.recv()
+hand.display()

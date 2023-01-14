@@ -100,5 +100,7 @@ for gamer in players :
 
 # ---- functions -----
 
-
+# send each player their hand 
+for gamer in players :
+    gamer.conn.send(gamer.hand,"disp")
 
