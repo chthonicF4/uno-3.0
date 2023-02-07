@@ -71,7 +71,8 @@ brodcast("game starting","start")
 
 pickup_pile = gen_deck()
 pickup_pile.shuffle()
-
+discard_pile = deck()
+discard_pile.add(pickup_pile.take())
 
 class player() : 
 

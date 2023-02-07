@@ -37,7 +37,7 @@ class connection():
 
     def send(self,msg,flag=""):
         # send messages yk 
-        msg = pickle.dumps((msg,flag))
+        msg = pickle.dumps((flag,msg))
         self.sock.send(msg)
         time.sleep(0.01)
     
