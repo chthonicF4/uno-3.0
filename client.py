@@ -35,13 +35,12 @@ def connect_to_a_server():
 # --------------------------THE CODE THAT ACTUALY DOES STUFF-----------------------------------
 
 
-# ------- inital clients conecting ----------
+# ------- inital clients conecting ---------- (waiting for game to start)
 
 sock , server_addr = connect_to_a_server()
 
 # wait unill recive "start" flag
 print(f"\nWaiting for players to start :")
-data = "ee"
 while True:
     data = sock.recv()
     if data[1] == "start" : break
@@ -49,7 +48,50 @@ while True:
     
 print(colrs.c(data[0],cps=C_info))
 
-# ------- start game ---------------
+# ------- start game ---------------(when receve message that game is starting)
 
-hand,flag = sock.recv()
-hand.display()
+# start main listen loop from sever 
+
+# ---- network flags ----
+#
+# disp : message send from server to be displayed by client to user
+# start : tells clients the game is  starting 
+# close : tells client to close connection / this connection is closing (msg half is to be displayed as reason) 
+# dispHand : client should display the hand data
+# choseCard : tells client to choose a card and send back the card id
+#
+#
+
+TEMP_PLAYER_HAND = []
+
+while True : 
+    # recive data 
+    msg,flag = sock.recv()
+
+    if flag == "dispHand" :
+        title = "YOUR HAND"
+        print(f"{title:^18}")
+        msg.display()
+        TEMP_PLAYER_HAND = msg
+        pass
+    elif flag == "close" :
+        sock.close()
+        pass
+    elif flag == "disp" :
+        if data != ('game starting', 'start'):
+            print(data)
+    elif flag == "choseCard":
+        # print hand and ask for card choice by id (also check if id is in hand)
+        title = "YOUR HAND"
+        print(f"{title:^18}")
+        TEMP_PLAYER_HAND.display()
+        
+        ID_CHOICE = input(f"\nChoose a card to play")
+
+
+
+    
+
+
+    else :
+        pass

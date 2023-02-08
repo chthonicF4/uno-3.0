@@ -3,11 +3,12 @@ from random import randint
 
 
 class connection():
-    def __init__(self,conn=None):
+    def __init__(self,conn=None,address=None):
         if conn == None :
             self.sock = socket.socket(socket.AF_INET)
         else :
             self.sock = conn
+            self.adress = address
     
     def bind(self,**kwargs):
         self.server = True
@@ -25,7 +26,7 @@ class connection():
         self.sock.listen(1)
         client_conn , addr = self.sock.accept()
         # make the clients conn into a network objct so that it can be used like that ykkkkkkkkkkkkkkkkk
-        client_conn = connection(conn=client_conn)
+        client_conn = connection(conn=client_conn,address=addr)
         client_conn.server = False
         return (client_conn,addr)
     
@@ -37,7 +38,7 @@ class connection():
 
     def send(self,msg,flag=""):
         # send messages yk 
-        msg = pickle.dumps((flag,msg))
+        msg = pickle.dumps((msg,flag))
         self.sock.send(msg)
         time.sleep(0.01)
     

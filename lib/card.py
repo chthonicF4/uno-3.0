@@ -41,7 +41,7 @@ class deck():
         pass
 
     def add(self,card):
-        self.deck.append(card)
+        self.deck.insert(0,card)
 
     def take(self) :
         return self.deck.pop(0)
