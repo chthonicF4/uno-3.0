@@ -160,9 +160,10 @@ def can_place_card(card1:card,card2:card): #reurns bool , if 2 cards are compati
             CURRENT_ADDITTON_COUNTER += int(card1.type[-1])
         return True
     
-def request_card_choice(conn):
-
-    pass
+def request_card_choice(conn:ntwk.connection):
+    # send request to client
+    conn.send("","chooseCard")
+    return conn.recv()
 
 
 def client_turn() : # executed the stuff for a clients turn (which client is passed into the function as a player object)
