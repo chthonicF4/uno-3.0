@@ -219,7 +219,7 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
 
             # add the current addition count to clients hand
             for addition in range(CURRENT_ADDITTON_COUNTER) :
-                players[TURN_POINTER].pickup()
+                players[TURN_POINTER].pick_up()
                 game_update()
                 time.sleep(action_delay)
             return
@@ -257,13 +257,9 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
         
         if chosen_id == -1 : # if id is -1 then draw from the pile 
             
-            players[TURN_POINTER].pickup()
+            players[TURN_POINTER].pick_up()
             time.sleep(action_delay)
 
-            for addition in range(CURRENT_ADDITTON_COUNTER) :
-                players[TURN_POINTER].pickup()
-                game_update()
-                time.sleep(action_delay)
         
         else: # if id is a card and not to draw
             
@@ -275,10 +271,16 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
                 if can_place_card(chosen_card,discard_pile.deck[0]) : # if can place card
                     break
                 client.conn.send("Invalid choice please choose again","disp")
+                time.sleep(action_delay)
                 chosen_id = request_card_choice(client.conn)
             
             # play card
-            discard_pile.add(client.hand.take(index_of_chosen_card))
+            chosen_card = client.hand.take(index_of_chosen_card)
+            discard_pile.add(chosen_card)
+            if chosen_card.type == "+2" :
+                CURRENT_ADDITTON_COUNTER += 2
+            elif chosen_card.type == "+4" :
+                CURRENT_ADDITTON_COUNTER += 4
 
 
 
@@ -289,7 +291,7 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
     # once card has been placed check if the card is black , if it is then get the client to choose a colour
     if discard_pile.deck[0].colour == "black" :
         chosen_colour = client_choose_colour(client.conn)
-        discard_pile[0].colour = chosen_colour
+        discard_pile.deck[0].colour = chosen_colour
 
     game_update()
 
@@ -304,10 +306,12 @@ def player_has_won(): # checks to see if a player has 0 cards , if so then retur
 def play_main_loop():
     global TURN_POINTER , CURRENT_ADDITTON_COUNTER
 
-    if discard_pile.deck[0] == "black" : # if the first card in the discard pile is black then set it to a random colour
+    if discard_pile.deck[0].colour == "black" : # if the first card in the discard pile is black then set it to a random colour
         discard_pile.deck[0].colour = colours[random.randint(0,len(colours)-1)]
     
-    while player_has_won == False :
+    while player_has_won() == False :
+        clients_turn = players[TURN_POINTER].nick
+        brodcast(f"it is {clients_turn}'s turn","disp")
         client_turn()
         TURN_POINTER += 1 
         if TURN_POINTER == len(players) :

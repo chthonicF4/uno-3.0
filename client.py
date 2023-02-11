@@ -85,7 +85,7 @@ def display_game():
     TEMP_PLAYER_HAND.display()
     title = "DISCARD PILE"
     print(f"{title:^18}")
-    TEMP_DISCARD_PILE.display()
+    print(TEMP_DISCARD_PILE.deck[0].disp_name)
 
 
 
@@ -115,7 +115,7 @@ while True :
     # DISPLAY
     
     elif flag == "disp" :
-        print(msg)
+        print(f"\n{msg}")
     
     # CHOOSE CARD
             
