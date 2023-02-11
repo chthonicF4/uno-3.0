@@ -40,11 +40,19 @@ class deck():
                 self.deck.insert(index,self.deck.pop(current_card))
         pass
 
+    def find_by_id(self,ID): # reutrns an index
+        for index , card in enumerate(self.deck) :
+            if card.ID == ID :
+                return index
+        return
+        pass
+
+
     def add(self,card):
         self.deck.insert(0,card)
 
-    def take(self) :
-        return self.deck.pop(0)
+    def take(self,index=0) :
+        return self.deck.pop(index)
     
     def print(self):
         for index , card in enumerate(self.deck) :
