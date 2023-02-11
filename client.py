@@ -74,6 +74,7 @@ TEMP_DISCARD_PILE = []
 TEMP_PLAYERS_HAND_SIZES = []
 
 def display_game():
+    print("\n")
     # player hand sizes
     title = "CARD COUNT"
     print(f"{title:^18}")
@@ -103,17 +104,18 @@ while True :
         
         pass
     
-    # CLOSE
+    # CLOSE data = close reason 
     
     elif flag == "close" :
         sock.close()
+        print(f"<server> : {msg}")
+        break
         pass
     
     # DISPLAY
     
     elif flag == "disp" :
-        if data != ('game starting', 'start'):
-            print(data)
+        print(msg)
     
     # CHOOSE CARD
             
@@ -145,7 +147,7 @@ while True :
     # CHOOSE A COLOUR 
 
     elif flag == "chooseColour" :
-        colours = data
+        colours = msg
         # print out options and take in choice as an index
         print(f"Choose a colour for card :\n")
         for index , colour in enumerate(colours) :

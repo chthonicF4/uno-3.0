@@ -253,7 +253,7 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
                     
     else: # request a card choice from client
         
-        chosen_id = request_card_choice(client.conn)
+        chosen_id , flag = request_card_choice(client.conn)
         
         if chosen_id == -1 : # if id is -1 then draw from the pile 
             
@@ -282,21 +282,39 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
 
 
 
-
+    # send game update to all clients to show changes
     game_update()
+
+
     # once card has been placed check if the card is black , if it is then get the client to choose a colour
-    if discard_pile[0].colour == "black" :
+    if discard_pile.deck[0].colour == "black" :
         chosen_colour = client_choose_colour(client.conn)
         discard_pile[0].colour = chosen_colour
 
     game_update()
 
-client_turn()
+# server turn loop
 
+def player_has_won(): # checks to see if a player has 0 cards , if so then returns player name , otherwise returns false
+    for player in players :
+        if len(player.hand.deck) == 0 :
+            return player.nick
+    return False
 
+def play_main_loop():
+    global TURN_POINTER , CURRENT_ADDITTON_COUNTER
 
+    if discard_pile.deck[0] == "black" : # if the first card in the discard pile is black then set it to a random colour
+        discard_pile.deck[0].colour = colours[random.randint(0,len(colours)-1)]
+    
+    while player_has_won == False :
+        client_turn()
+        TURN_POINTER += 1 
+        if TURN_POINTER == len(players) :
+            TURN_POINTER = 0
+    
+    brodcast(f" {player_has_won()} has won","disp")
+    brodcast("server is closing","close")
 
-
-
-
+play_main_loop()
 

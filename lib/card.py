@@ -44,7 +44,7 @@ class deck():
         for index , card in enumerate(self.deck) :
             if card.ID == ID :
                 return index
-        return
+        return "coljasdasd"
         pass
 
 
