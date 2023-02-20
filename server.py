@@ -287,10 +287,15 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
                 
                 if can_place_card(chosen_card,discard_pile.deck[0]) : # if move is valid
                     discard_pile.add(client.hand.take(index_of_chosen_card))
+                    
+                    # check if card has special propertys
+
                     if chosen_card.type == "+2" :
                         CURRENT_ADDITTON_COUNTER += 2
                     elif chosen_card.type == "+4" :
                         CURRENT_ADDITTON_COUNTER += 4
+                    elif chosen_card.type == "skip" :
+                        TURN_POINTER += 1
                     break
                 else :
                     client.conn.send("cant play that card right now","disp")
@@ -305,7 +310,7 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
     if discard_pile.deck[0].colour == "black" :
         chosen_colour = client_choose_colour(client.conn)
         print(f"chosen colour : {colours[chosen_colour[0]]}")
-        discard_pile.deck[0].colour = colours[chosen_colour[0]]
+        discard_pile.deck[0].update(colour = colours[chosen_colour[0]]) 
 
     game_update()
 
@@ -328,8 +333,8 @@ def play_main_loop():
         brodcast(f"it is {clients_turn}'s turn","disp")
         client_turn()
         TURN_POINTER += 1 
-        if TURN_POINTER == len(players) :
-            TURN_POINTER = 0
+        if TURN_POINTER >= len(players) :
+            TURN_POINTER = (TURN_POINTER%len(players))*len(players)
     
     brodcast(f" {player_has_won()} has won","disp")
     brodcast("server is closing","close")

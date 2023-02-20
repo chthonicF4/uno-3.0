@@ -2,15 +2,19 @@ import random
 
 class card():
 
-    def update(self,colour,type,ID):
-        self.colour = colour
-        self.type = type
-        self.ID = ID
+    def update(self,**k):
+        self.colour = k.get("colour",self.colour)
+        self.type = k.get("type",self.type)
+        self.ID = k.get("ID",self.ID)
         self.name = f"{self.colour} {self.type}"
         self.disp_name = f"{self.name:<11} : {self.ID}"
 
     def __init__(self,colour,type,ID):
-        self.update(colour,type,ID)
+        self.colour = colour
+        self.type = type 
+        self.ID = ID
+        self.name = f"{self.colour} {self.type}"
+        self.disp_name = f"{self.name:<11} : {self.ID}"
         pass
 
 class deck():
