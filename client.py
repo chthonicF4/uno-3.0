@@ -136,7 +136,7 @@ while True :
                     valid_choice = True
                     break
             if valid_choice == False :
-                print("invalid choice please choose again")
+                print("invalid choice please choose again <client>")
             else : 
                 break
 
@@ -162,7 +162,7 @@ while True :
                 continue
             break
         
-        sock.send(chosen_colour,"chooseColour")
+        sock.send(chosen_colour_index,"chooseColour")
 
     else :
         pass

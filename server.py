@@ -185,19 +185,25 @@ def can_place_card(card1:card,card2:card): #reurns bool , if 2 cards are compati
     
 def request_card_choice(conn:ntwk.connection):
     # send request to client
+    print(f"requesting card from player")
     conn.send("","chooseCard")
-    return conn.recv()
+    data = conn.recv()
+    print(data)
+    return data[0]
 
 
 def client_choose_colour(conn):
+    print("requesting colour")
     conn.send(colours,"chooseColour")
-    return conn.recv()
+    data = conn.recv()
+    print(data)
+    return data
 
 
 action_delay = 0.25
 
 def client_turn() : # executed the stuff for a clients turn (which client is passed into the function as a player object)
-    global CURRENT_ADDITTON_COUNTER, TURN_POINTER , players
+    global CURRENT_ADDITTON_COUNTER, TURN_POINTER , players , discard_pile
 
     client = players[TURN_POINTER]
     chosen_card = None
@@ -222,6 +228,7 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
                 players[TURN_POINTER].pick_up()
                 game_update()
                 time.sleep(action_delay)
+            CURRENT_ADDITTON_COUNTER = 0
             return
         
         else: # if can add to the stack, request a card choice from the client
@@ -238,7 +245,7 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
                     break
 
 
-                index_of_chosen_card = client.hand.find_by_id(chosen_id)
+                index_of_chosen_card = int(client.hand.find_by_id(chosen_id))
                 chosen_card = client.hand.deck[index_of_chosen_card]
 
                 if chosen_card.type == stack_type : # if card has the same type as the stack type
@@ -252,37 +259,43 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
         
                     
     else: # request a card choice from client
-        
-        chosen_id , flag = request_card_choice(client.conn)
-        
-        if chosen_id == -1 : # if id is -1 then draw from the pile 
-            
-            players[TURN_POINTER].pick_up()
-            time.sleep(action_delay)
 
+        while True :
         
-        else: # if id is a card and not to draw
+            chosen_id = request_card_choice(client.conn)
             
-            while True : # check if can place card
+            if type(chosen_id) != int : # if the id is not an iteger try again
+                client.conn.send("server revied bad choice , please try again","disp")
+                continue
+
+
+            if chosen_id == -1 : # if id is -1 then draw from the pile 
+                players[TURN_POINTER].pick_up()
+                break
+
+            else : # if choice is not to draw 
+
+                # check if is a valid choice
 
                 index_of_chosen_card = client.hand.find_by_id(chosen_id)
+
+                if index_of_chosen_card == None : # bad recv of data so try again
+                    client.conn.send("server did not revive the choice , please try again","disp")
+                    continue
+                
                 chosen_card = client.hand.deck[index_of_chosen_card]
-
-                if can_place_card(chosen_card,discard_pile.deck[0]) : # if can place card
+                
+                if can_place_card(chosen_card,discard_pile.deck[0]) : # if move is valid
+                    discard_pile.add(client.hand.take(index_of_chosen_card))
+                    if chosen_card.type == "+2" :
+                        CURRENT_ADDITTON_COUNTER += 2
+                    elif chosen_card.type == "+4" :
+                        CURRENT_ADDITTON_COUNTER += 4
                     break
-                client.conn.send("Invalid choice please choose again","disp")
-                time.sleep(action_delay)
-                chosen_id = request_card_choice(client.conn)
-            
-            # play card
-            chosen_card = client.hand.take(index_of_chosen_card)
-            discard_pile.add(chosen_card)
-            if chosen_card.type == "+2" :
-                CURRENT_ADDITTON_COUNTER += 2
-            elif chosen_card.type == "+4" :
-                CURRENT_ADDITTON_COUNTER += 4
-
-
+                else :
+                    client.conn.send("cant play that card right now","disp")
+                    continue
+                    
 
     # send game update to all clients to show changes
     game_update()
@@ -291,7 +304,8 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
     # once card has been placed check if the card is black , if it is then get the client to choose a colour
     if discard_pile.deck[0].colour == "black" :
         chosen_colour = client_choose_colour(client.conn)
-        discard_pile.deck[0].colour = chosen_colour
+        print(f"chosen colour : {colours[chosen_colour[0]]}")
+        discard_pile.deck[0].colour = colours[chosen_colour[0]]
 
     game_update()
 
