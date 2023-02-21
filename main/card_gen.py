@@ -1,5 +1,12 @@
-from PIL import Image
-import os
+
+
+from PIL import Image ,ImageTk
+import os ,tkinter as tk
+
+if __name__ != "__main__" :
+    import main.lib.loading_bars as loading_bars
+else:
+    import lib.loading_bars as loading_bars
 card_width = 165
 card_height = 256
 
@@ -71,5 +78,9 @@ for grid_y in range(0,card_grid_height):
         card = root_image.crop((left,top,right,bottom))
         new_image_path = f"assets\\cards\\{order[number]}.png"
         card.save(os.path.join(root_dir,new_image_path))
+
+        print(loading_bars.loadingbar(number/len(order),15,"loading card assets"),end="\r")
+print()
+
         
 
