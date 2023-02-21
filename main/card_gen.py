@@ -11,15 +11,15 @@ card_y_pad = 2.5
 
 root_dir = os.path.dirname(os.path.realpath(__file__))
 
-root_image = Image.open(f"{root_dir}\\all_cards.png")
+root_image = Image.open(f"{root_dir}\\assets\\all_cards.png")
 
 directorys_to_make = [
-    "cards",
-    "cards\\red",
-    "cards\\blue",
-    "cards\\yellow",
-    "cards\\green",
-    "cards\\black"
+    "assets\\cards",
+    "assets\\cards\\red",
+    "assets\\cards\\blue",
+    "assets\\cards\\yellow",
+    "assets\\cards\\green",
+    "assets\\cards\\black"
     ]
 
 for dir in directorys_to_make:
@@ -69,7 +69,7 @@ for grid_y in range(0,card_grid_height):
         bottom = top + card_height
 
         card = root_image.crop((left,top,right,bottom))
-        new_image_path = f"cards\\{order[number]}.png"
+        new_image_path = f"assets\\cards\\{order[number]}.png"
         card.save(os.path.join(root_dir,new_image_path))
         
 
