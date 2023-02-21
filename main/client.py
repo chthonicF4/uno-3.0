@@ -5,7 +5,7 @@ import lib.networking as ntwk # networking functions and classes
 
 from lib.card import * # imports the classes used for cards and decks
 
-import lib.colours as colrs
+import lib.colours as colrs , tkinter as tk
 
 # -------- PRESET VARIABLES ----------
 
