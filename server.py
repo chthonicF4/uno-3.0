@@ -1,17 +1,31 @@
-import lib.networking as ntwk , random , time , threading
+import lib.networking as ntwk , random , time , threading , PIL
 
 from lib.loading_bars import loadingbar as ldngbr
+
 
 # classes
 
 from lib.card import *
-               
+
+# config 
+SETTINGS = {
+    "7-0":False,
+    "+10":False,
+    "+ stacking":True
+}
+
+
+# megga plus 4 , plus 4's everyone 
+
 # ----------------------- CARD STUFF -----------------------
 
 # card propertys
 colours = ["red","blue","green","yellow"]
-numbers = ["1","2","3","4","5","6","7","8","9","+2"]*2 + ["0","skip"]
+numbers = ["1","2","3","4","5","6","7","8","9","+2"]*2 + ["0","skip","reverse"]
 special = ["+4","wild"]*4
+
+if SETTINGS["+10"] == True :
+    special.append("+10")
 
 # card functions 
 
@@ -169,6 +183,7 @@ game_update()
 # ----------- GAME VARS ----------------
 TURN_POINTER = 0
 CURRENT_ADDITTON_COUNTER = 0
+TURN_POINTER_STEP = 1
 
 
 # --------- FUNCTIONS ------------
@@ -179,7 +194,7 @@ def can_place_card(card1:card,card2:card): #reurns bool , if 2 cards are compati
         return True
     
     elif card1.type == card2.type : # same number / type
-        if card1.type == "+4" or card1.type == "+2" : # if card is a plus 4 or 2 then add to the cumulitve count 
+        if card1.type[0] == "+": # if card is a plus 4 or 2 then add to the cumulitve count 
             CURRENT_ADDITTON_COUNTER += int(card1.type[-1])
         return True
     
@@ -203,7 +218,7 @@ def client_choose_colour(conn):
 action_delay = 0.25
 
 def client_turn() : # executed the stuff for a clients turn (which client is passed into the function as a player object)
-    global CURRENT_ADDITTON_COUNTER, TURN_POINTER , players , discard_pile
+    global CURRENT_ADDITTON_COUNTER, TURN_POINTER , TURN_POINTER_STEP , players , discard_pile
 
     client = players[TURN_POINTER]
     chosen_card = None
@@ -221,6 +236,9 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
                 can_add_to_stack = True
                 break
         
+        if SETTINGS["+ stacking"] == False :
+            can_add_to_stack = False
+
         if can_add_to_stack != True :
 
             # add the current addition count to clients hand
@@ -290,12 +308,19 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
                     
                     # check if card has special propertys
 
-                    if chosen_card.type == "+2" :
-                        CURRENT_ADDITTON_COUNTER += 2
-                    elif chosen_card.type == "+4" :
-                        CURRENT_ADDITTON_COUNTER += 4
+                    if chosen_card.type[0] == "+" :
+                        CURRENT_ADDITTON_COUNTER += int(chosen_card.type[-1])
                     elif chosen_card.type == "skip" :
-                        TURN_POINTER += 1
+                        TURN_POINTER += TURN_POINTER_STEP
+                    elif chosen_card.type == "reverse" :
+                        TURN_POINTER_STEP = 0-TURN_POINTER_STEP
+                    elif SETTINGS["7-0"] == True :
+                        if chosen_card.type == "0" :
+                            pass
+                        elif chosen_card.type == "7" :
+                            pass
+
+
                     break
                 else :
                     client.conn.send("cant play that card right now","disp")
@@ -332,9 +357,10 @@ def play_main_loop():
         clients_turn = players[TURN_POINTER].nick
         brodcast(f"it is {clients_turn}'s turn","disp")
         client_turn()
-        TURN_POINTER += 1 
+        TURN_POINTER += TURN_POINTER_STEP
         if TURN_POINTER >= len(players) :
             TURN_POINTER = (TURN_POINTER%len(players))*len(players)
+        time.sleep(action_delay)
     
     brodcast(f" {player_has_won()} has won","disp")
     brodcast("server is closing","close")
