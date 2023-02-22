@@ -1,13 +1,15 @@
-import lib.networking as ntwk , random , time , threading , PIL
 
-from lib.loading_bars import loadingbar as ldngbr
-
-
-# classes
-
-from lib.card import *
+if __name__ == "__main__" :
+    import lib.networking as ntwk , random , time , threading , PIL
+    from lib.loading_bars import loadingbar as ldngbr
+    from lib.card import *
+else:
+    import main.lib.networking as ntwk , random , time , threading , PIL
+    from main.lib.loading_bars import loadingbar as ldngbr
+    from main.lib.card import *
 
 # config 
+
 SETTINGS = {
     "7-0":False,
     "+10":False,

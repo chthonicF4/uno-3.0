@@ -1,23 +1,53 @@
 
 # modules
 
-import lib.networking as ntwk # networking functions and classes
+if __name__ == "__main__" :
+    import lib.networking as ntwk ,tkinter as tk ,CONFIG # networking functions and classes
+    from lib.card import * # imports the classes used for cards and decks
+    import card_gen
 
-from lib.card import * # imports the classes used for cards and decks
+    
+else :
+    import main.lib.networking as ntwk , tkinter as tk , main.CONFIG as CONFIG # networking functions and classes
+    from main.lib.card import * # imports the classes used for cards and decks
+    import main.card_gen
 
-import lib.colours as colrs , tkinter as tk
+# --------- WINDOW STUFF -------------
+
+win_palete = CONFIG.win_palete
+
+root = tk.Tk()
+root.title(CONFIG.win_title)
+root.geometry(f"{CONFIG.win_width}x{CONFIG.win_height}")
+root.config(bg=win_palete[1])
+root.columnconfigure(weight=1,index=0)
+root.rowconfigure(weight=1,index=0)
+
+
+class make_new_frame() :
+    def __init__(self):
+        self.frame = tk.Frame(master=root,width=CONFIG.win_width,height=CONFIG.win_height,bg=win_palete[1])
+
+    def pack(self):
+        self.frame.grid(sticky=tk.NSEW)
+
+
+
+CURRENT_FRAME = make_new_frame()
+CURRENT_FRAME.pack()
+
+
 
 # -------- PRESET VARIABLES ----------
 
-C_input = colrs.colrP(fg="lightcyan",ut="bold")
-C_Warning = colrs.colrP(fg="lightred",ut="underline")
-C_info = colrs.colrP(fg="yellow",ut="bold")
+
+
 
 # Functions
 def connect_to_a_server():
     sock = ntwk.connection()
     # get sever addr 
-    addr = str(input(colrs.c("Address : ",cps=C_input)))
+    addr = str(input(("Address : ")))
     #decode addr
     seperator_index = addr.index(":")
     host , port = addr[:seperator_index] , int(addr[seperator_index+1:])
@@ -25,7 +55,7 @@ def connect_to_a_server():
     try : 
         sock.connect((host,port))
     except :
-        print(colrs.c("Server diddn't respond , make sure the address is correct",cps=C_info))
+        print(("Server diddn't respond , make sure the address is correct"))
         connect_to_a_server()
     return sock , (host,port)
 
@@ -38,8 +68,13 @@ def connect_to_a_server():
 # ------- inital clients conecting ---------- (waiting for game to start)
 
 # get a nickname then join server
-print(colrs.c("Name>> ",cps=C_input))
-nickname = str(input())
+
+
+# NAME INPUT 
+name_box = 
+
+
+
 
 sock , server_addr = connect_to_a_server()
 
@@ -52,7 +87,7 @@ while True:
     if data[1] == "start" : break
     print(data[0],end="")
     
-print(colrs.c(data[0],cps=C_info))
+print(data[0])
 
 # ------- start game ---------------(when receve message that game is starting)
 
