@@ -4,8 +4,13 @@ from PIL import Image
 import os ,tkinter as tk , threading as thrd ,time
 
 if __name__ != "__main__" :
-    import main.lib.loading_bars as loading_bars
-    import main.CONFIG as CONFIG
+    try:
+        import main.lib.loading_bars as loading_bars
+        import main.CONFIG as CONFIG
+    except:
+        import lib.loading_bars as loading_bars
+        import CONFIG as CONFIG
+
 else:
     import lib.loading_bars as loading_bars
     import CONFIG 

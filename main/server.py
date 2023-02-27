@@ -125,6 +125,13 @@ while len(clients) < room_size :
     print(client_addr)
     nickname , flag = client_conn.recv()
     clients.append([client_conn,nickname])
+    # check all clients are still connected
+    for index,client in enumerate(clients) :
+        try:
+            client[0].send("PING","ping")
+        except:
+            clients.pop(index)
+
 print("starting")
 brodcast("game starting","start")
 time.sleep(1)

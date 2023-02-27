@@ -41,6 +41,7 @@ class connection():
         msg = pickle.dumps((msg,flag))
         self.sock.send(msg)
         time.sleep(0.01)
+
     
     def recv(self):
         # receive some messages (wish people would send me messages)
