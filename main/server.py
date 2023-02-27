@@ -101,26 +101,9 @@ room_size = int(input("room size (2 minimum) : ")) # numb more than 2
 
 print("waiting for clients")
 
-def player_bar_start(room_size): 
-    temp_len = len(clients) 
-    while True:
-
-        if temp_len != len(clients):
-            bar = ldngbr(len(clients)/room_size,room_size,"PLAYERS")
-            brodcast(f"{bar}\r","disp")
-            temp_len = len(clients)
-        temp_len = len(clients)
-        if temp_len == room_size :
-            return
-        time.sleep(0.02)
-
-# start loading bar thread that will relay the ammount of players in queue
-loading_bar_thread = threading.Thread(target=player_bar_start,args=(room_size,))
-loading_bar_thread.start()
-
-
-while len(clients) < room_size :
+while True :
     # keep acepting connections till room is full , then start game
+    brodcast(ldngbr(len(clients)/room_size,10,"PLAYERS"),"disp")
     client_conn , client_addr = server_conn.listen()
     print(client_addr)
     nickname , flag = client_conn.recv()
@@ -131,6 +114,8 @@ while len(clients) < room_size :
             client[0].send("PING","ping")
         except:
             clients.pop(index)
+    if len(clients) == room_size: break
+    time.sleep(0.01)
 
 print("starting")
 brodcast("game starting","start")

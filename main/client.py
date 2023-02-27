@@ -1,17 +1,17 @@
 
 # modules
-import threading as thrd
+import threading as thrd , pickle , queue as thrd_queue
 
 if __name__ == "__main__" :
     import lib.networking as ntwk ,tkinter as tk ,CONFIG # networking functions and classes
     from lib.card import * # imports the classes used for cards and decks
-    import card_gen
+    import card_gen # run card gen 
 
     
 else :
     import main.lib.networking as ntwk , tkinter as tk , main.CONFIG as CONFIG # networking functions and classes
     from main.lib.card import * # imports the classes used for cards and decks
-    import main.card_gen
+    import main.card_gen # run card gen 
 
 # --------- WINDOW STUFF -------------
 
@@ -30,8 +30,8 @@ root.rowconfigure(weight=1,index=0)
 class make_new_frame() :
     def __init__(self):
         self.frame = tk.Frame(master=root,width=CONFIG.win_width,height=CONFIG.win_height,bg=win_palete[1])
-        self.frame.columnconfigure(index=0,weight=1)
-        self.frame.rowconfigure(index=0,weight=1)
+        self.frame.columnconfigure(weight=1,index=0)
+        self.frame.rowconfigure(weight=1,index=0)
 
     def pack(self):
         self.frame.grid(sticky=tk.NSEW)
@@ -77,6 +77,16 @@ def on_info_submit(**k):
         host , port = addr[:seperator_index] , int(addr[seperator_index+1:])
         sock.connect((host,port))
         sock.send(name_box.get_box())
+        queue = thrd_queue.Queue()
+
+        def recv_start_loop(sock,queue):
+            while True:
+                data = sock.recv()
+                queue.put(data)
+                if data[0] == "start": break
+
+        recv_start_loop_thread = thrd.Thread(target=recv_start_loop,daemon=True,name="Start recv thread",args=(sock,queue))
+        recv_start_loop_thread.start()
     except :
         lable = "Server diddn't respond , make sure the address is correct"
         error_lable = tk.Label(master=entry_frame,text=lable,font=(CONFIG.win_font,10),fg="red",bg=CONFIG.win_palete[1])
@@ -90,7 +100,8 @@ def on_info_submit(**k):
         conecting_satus_msg = tk.Label(master=CURRENT_FRAME.frame,font=(CONFIG.win_font,20),text=lable,fg=CONFIG.win_palete[3],bg=CONFIG.win_palete[1])
         conecting_satus_msg.grid(row=0,column=0)
         CURRENT_FRAME.pack()
-        thrd.Thread(target=wait_till_start,args=(sock,(host,port))).start()
+        wait_till_start(sock,(host,port),queue)
+
 
 # NAME INPUT 
 lable = "Name :"
@@ -137,33 +148,39 @@ submit_button = tk.Button(
 submit_button.grid(row=2,column=0,padx=20,pady=20)
 
 
-def wait_till_start(sock,addr):
+def wait_till_start(sock,addr,queue):
+
     # wait unill recive "start" flag
-    try:
-        raise "help"
-    except:
-        pass
     global CURRENT_FRAME
+
     CURRENT_FRAME.frame.destroy()
     CURRENT_FRAME = make_new_frame()
     lable = "Waiting for players to start" 
-    waiting_lable = tk.Label(master=CURRENT_FRAME.frame,font=(CONFIG.win_font,20),text=lable,fg=CONFIG.win_palete[3],bg=CONFIG.win_palete[1])
+
+    waiting_room_frame = tk.Frame(master=CURRENT_FRAME.frame,width=1,height=1,bg=CONFIG.win_palete[1])
+
+    waiting_lable = tk.Label(master=waiting_room_frame,font=(CONFIG.win_font,20),text=lable,fg=CONFIG.win_palete[3],bg=CONFIG.win_palete[1])
     lable = "PLAYERS"
-    current_player_count = tk.Label(master=CURRENT_FRAME.frame,font=(CONFIG.win_font,20),text=lable,fg=CONFIG.win_palete[3],bg=CONFIG.win_palete[1])
+    current_player_count = tk.Label(master=waiting_room_frame,font=(CONFIG.win_font,20),text=lable,fg=CONFIG.win_palete[3],bg=CONFIG.win_palete[1])
+    CURRENT_FRAME.pack()
+    waiting_room_frame.grid(row=0,column=0)
+
     
     waiting_lable.grid(row=0,column=0)
     current_player_count.grid(row=1,column=0)
+
+    while True :
+        try : 
+            q_data , flag = queue.get_nowait()
+
+            if flag == "disp":current_player_count.config(text=q_data)
+
+            if flag == "start": break
+        except:
+            pass
+        root.update()
+
     
-    while True:
-        print("reciveing data")
-        data = sock.recv()
-        if data[1] == "start" : break
-        current_player_count.config(text=data[0])
-        current_player_count.grid(row=1,column=0)
-        
-        
-    print(data[0])
-    main_loop(sock,addr)
 
 # ------- start game ---------------(when receve message that game is starting)
 
