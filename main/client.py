@@ -73,20 +73,24 @@ def on_info_submit(**k):
     addr = server_address_box.get_box()
     #decode addr
     try:
-        seperator_index = addr.index(":")
-        host , port = addr[:seperator_index] , int(addr[seperator_index+1:])
-        sock.connect((host,port))
-        sock.send(name_box.get_box())
         queue = thrd_queue.Queue()
 
         def recv_start_loop(sock,queue):
             while True:
                 data = sock.recv()
                 queue.put(data)
-                if data[0] == "start": break
+                print(data)
+                if data[1] == "start": break
+
+        seperator_index = addr.index(":")
+        host , port = addr[:seperator_index] , int(addr[seperator_index+1:])
+        sock.connect((host,port))
+        sock.send(name_box.get_box())
+        sock.recv()
 
         recv_start_loop_thread = thrd.Thread(target=recv_start_loop,daemon=True,name="Start recv thread",args=(sock,queue))
         recv_start_loop_thread.start()
+
     except :
         lable = "Server diddn't respond , make sure the address is correct"
         error_lable = tk.Label(master=entry_frame,text=lable,font=(CONFIG.win_font,10),fg="red",bg=CONFIG.win_palete[1])
@@ -173,12 +177,18 @@ def wait_till_start(sock,addr,queue):
         try : 
             q_data , flag = queue.get_nowait()
 
+
             if flag == "disp":current_player_count.config(text=q_data)
 
-            if flag == "start": break
+            if flag == "start": 
+                current_player_count.config(text=q_data)
+                waiting_lable.config(text="Room Full")
+                root.update()
+                break
         except:
             pass
         root.update()
+    main_loop(sock,addr)
 
     
 
@@ -197,10 +207,26 @@ def wait_till_start(sock,addr,queue):
 #
 
 def main_loop(sock,server_addr) :
+    global CURRENT_FRAME
+
 
     TEMP_PLAYER_HAND = []
     TEMP_DISCARD_PILE = []
     TEMP_PLAYERS_HAND_SIZES = []
+
+    CURRENT_FRAME.frame.destroy()
+    CURRENT_FRAME = make_new_frame() 
+    CURRENT_FRAME.pack()
+
+    class card_img():
+        def __init__(self,path,master):
+            self.path = path
+            self.canvas = tk.Canvas(master=master,width=166,height=265)
+            self.img = tk.PhotoImage(file=path)
+            self.canvas.create_image(83,135,image=self.img)
+
+        def pack(self):
+            self.canvas.pack()
 
     def display_game():
         print("\n")
@@ -215,6 +241,17 @@ def main_loop(sock,server_addr) :
         title = "DISCARD PILE"
         print(f"{title:^18}")
         print(TEMP_DISCARD_PILE.deck[0].disp_name)
+
+        # disp cards on window
+
+        card_frame = tk.Frame(master=CURRENT_FRAME.frame)
+        card_frame.grid(row=0,column=0)
+
+        for card in TEMP_PLAYER_HAND.deck :
+            print(card.asset_path)
+            img = card_img(card.asset_path,card_frame)
+            img.pack()
+        card_frame.grid(row=0,column=0)
 
 
 

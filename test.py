@@ -7,26 +7,20 @@ root.geometry(f"{win_width}x{win_height}")
 
 root_dir = os.path.dirname(os.path.realpath(__file__))
 
-class entry_box():
-    def __init__(self,master,title:str,font,bg,fg,title_color,text_colour,box_width):
-        self.frame = tk.Frame(master=master,width=1,height=1,bg=bg)
-        self.box = tk.Entry(master=self.frame,fg=text_colour,font=font,bg=fg,width=box_width)
-        self.title = tk.Label(master=self.frame,text=title,font=font,fg=title_color,bg=bg)
-        self.frame.columnconfigure(index=1,weight=1)
-        self.title.grid(column=0,row=0,padx=5,pady=2)
-        self.box.grid(column=1,row=0,padx=5,pady=2)
-    
-    def get_box(self):
-        return self.box.get()
-    
-    def dissable(self):
-        self.box.config(state="disabled")
 
+class card_img():
+    def __init__(self,path,master):
+        self.path = path
+        self.canvas = tk.Canvas(master=master,width=166,height=265)
+        self.img = tk.PhotoImage(file=path)
+        self.canvas.create_image(83,135,image=self.img)
 
-new_box = entry_box(root,"TEST :",("arial",15),"red","blue","orange","white",30)
+    def pack(self):
+        self.canvas.pack()
 
-root.columnconfigure(index=0,weight=1)
-new_box.frame.grid(row=0,column=0)
-new_box.dissable()
+image = card_img(r"C:\Users\dan\OneDrive\Documents\GitHub\uno 3.0\main\assets\cards\red\+4.png",root)
+
+image.pack()
+
 
 root.mainloop()

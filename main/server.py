@@ -1,10 +1,10 @@
 
 if __name__ == "__main__" :
-    import lib.networking as ntwk , random , time , threading , PIL
+    import lib.networking as ntwk , random , time , threading , PIL , CONFIG
     from lib.loading_bars import loadingbar as ldngbr
     from lib.card import *
 else:
-    import main.lib.networking as ntwk , random , time , threading , PIL
+    import main.lib.networking as ntwk , random , time , threading , PIL , main.CONFIG as CONFIG
     from main.lib.loading_bars import loadingbar as ldngbr
     from main.lib.card import *
 
@@ -102,23 +102,38 @@ room_size = int(input("room size (2 minimum) : ")) # numb more than 2
 print("waiting for clients")
 
 while True :
+
+
     # keep acepting connections till room is full , then start game
-    brodcast(ldngbr(len(clients)/room_size,10,"PLAYERS"),"disp")
-    client_conn , client_addr = server_conn.listen()
-    print(client_addr)
-    nickname , flag = client_conn.recv()
-    clients.append([client_conn,nickname])
+
+    client_conn , client_addr = server_conn.listen() # wait for more people
+
+    print(client_addr) # print conn
+
+
+    nickname , flag = client_conn.recv() # recv nick
+
+
+    clients.append([client_conn,nickname]) # add to list
+
+    time.sleep(CONFIG.network_delay)
+
     # check all clients are still connected
     for index,client in enumerate(clients) :
         try:
             client[0].send("PING","ping")
         except:
             clients.pop(index)
-    if len(clients) == room_size: break
-    time.sleep(0.01)
+
+
+    if len(clients) == room_size: break # if room is full
+
+    brodcast(ldngbr(len(clients)/room_size,10,"PLAYERS"),"disp") # send loading bar to clients
+
+    time.sleep(CONFIG.network_delay)
 
 print("starting")
-brodcast("game starting","start")
+brodcast("Game is starting","start")
 time.sleep(1)
 
 # ------------------ GAME CODE 4REAL -----------------------
@@ -209,7 +224,7 @@ def client_choose_colour(conn):
     return data
 
 
-action_delay = 0.25
+action_delay = CONFIG.action_delay
 
 def client_turn() : # executed the stuff for a clients turn (which client is passed into the function as a player object)
     global CURRENT_ADDITTON_COUNTER, TURN_POINTER , TURN_POINTER_STEP , players , discard_pile
