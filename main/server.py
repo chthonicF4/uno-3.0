@@ -10,11 +10,7 @@ else:
 
 # config 
 
-SETTINGS = {
-    "7-0":False,
-    "+10":False,
-    "+ stacking":True
-}
+SETTINGS = CONFIG.SETTINGS
 
 
 # megga plus 4 , plus 4's everyone 
@@ -64,6 +60,7 @@ def brodcast(msg,flag):
     for client_conn in clients:
         client_conn[0].send(msg,flag)
         time.sleep(0.05)
+        print(f"\---- {client_conn},{msg,flag}")
 
 def client_handle(conn):
     global clients
@@ -132,10 +129,9 @@ while True :
 
     time.sleep(CONFIG.network_delay)
 
-print("starting")
 brodcast("Game is starting","start")
-time.sleep(1)
-
+print(clients)
+time.sleep(2)
 # ------------------ GAME CODE 4REAL -----------------------
 
 # ----- init ------
@@ -173,6 +169,11 @@ for gamer in players :
 
 def game_Update_for_client(client:player):
     # returns a list consisting of a list of all players and therir hand counts (including their own) their hand and the discard pile
+    # [
+    # [(player1_nick , hand size),(player2_nick , hand size) ect],
+    #  client's hand 
+    #  discard_pile
+    # ]
     out = []
     for player in players :
         out.append((player.nick,len(player.hand.deck)))
@@ -181,7 +182,8 @@ def game_Update_for_client(client:player):
 
 def game_update():
     for player in players :
-        player.conn.send(game_Update_for_client(player),"gameUpdate")
+        game_update_info = game_Update_for_client(player)
+        player.conn.send(game_update_info,"gameUpdate")
 
 # send each player their hand and the discard pile
 game_update()
@@ -209,7 +211,7 @@ def can_place_card(card1:card,card2:card): #reurns bool , if 2 cards are compati
     
 def request_card_choice(conn:ntwk.connection):
     # send request to client
-    print(f"requesting card from player")
+    print(f"requesting card from player {conn}")
     conn.send("","chooseCard")
     data = conn.recv()
     print(data)
@@ -217,7 +219,7 @@ def request_card_choice(conn:ntwk.connection):
 
 
 def client_choose_colour(conn):
-    print("requesting colour")
+    print(f"requesting colour from {conn}")
     conn.send(colours,"chooseColour")
     data = conn.recv()
     print(data)

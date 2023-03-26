@@ -5,3 +5,8 @@ win_title = "UNO 3.0"
 network_delay = 0.05 #secconds
 action_delay = 0.5 # secconds
 card_width,card_height = 165 ,265
+SETTINGS = {
+    "7-0":False,
+    "+10":False,
+    "+ stacking":True
+}

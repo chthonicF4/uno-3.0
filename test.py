@@ -18,9 +18,8 @@ class card_img():
     def pack(self):
         self.canvas.pack()
 
-image = card_img(r"C:\Users\dan\OneDrive\Documents\GitHub\uno 3.0\main\assets\cards\red\+4.png",root)
+image = card_img(r"C:\Users\DanTrinder\Documents\GitHub repositrys\uno-3.0\main\assets\cards\red\+4.png",root)
 
 image.pack()
-
 
 root.mainloop()

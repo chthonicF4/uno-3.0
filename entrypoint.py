@@ -1,5 +1,5 @@
-import tkinter as tk
-import main.CONFIG as CONFIG
+import tkinter as tk , main.CONFIG as CONFIG , sys
+
 
 
 def join(**k):

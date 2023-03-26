@@ -1,5 +1,5 @@
 
-# modules
+# modules , imports need to change based on the current working directory
 import threading as thrd , pickle , queue as thrd_queue
 
 if __name__ == "__main__" :
@@ -29,7 +29,12 @@ root.rowconfigure(weight=1,index=0)
 
 class make_new_frame() :
     def __init__(self):
-        self.frame = tk.Frame(master=root,width=CONFIG.win_width,height=CONFIG.win_height,bg=win_palete[1])
+        self.frame = tk.Frame(
+            master=root,
+            width=CONFIG.win_width,
+            height=CONFIG.win_height,
+            bg=win_palete[1]
+            )
         self.frame.columnconfigure(weight=1,index=0)
         self.frame.rowconfigure(weight=1,index=0)
 
@@ -51,7 +56,7 @@ CURRENT_FRAME.frame.columnconfigure(index=0,weight=1)
 CURRENT_FRAME.frame.rowconfigure(index=0,weight=1)
 entry_frame.grid(row=0,column=0)
 
-class entry_box():
+class entry_box(): # class for info entry boxes
     def __init__(self,master,title:str,font,bg,fg,title_color,text_colour,box_width):
         self.frame = tk.Frame(master=master,width=1,height=1,bg=bg)
         self.box = tk.Entry(master=self.frame,fg=text_colour,font=font,bg=fg,width=box_width)
@@ -77,16 +82,14 @@ def on_info_submit(**k):
 
         def recv_start_loop(sock,queue):
             while True:
+                print("waiting for data")
                 data = sock.recv()
                 queue.put(data)
-                print(data)
-                if data[1] == "start": break
 
         seperator_index = addr.index(":")
         host , port = addr[:seperator_index] , int(addr[seperator_index+1:])
         sock.connect((host,port))
         sock.send(name_box.get_box())
-        sock.recv()
 
         recv_start_loop_thread = thrd.Thread(target=recv_start_loop,daemon=True,name="Start recv thread",args=(sock,queue))
         recv_start_loop_thread.start()
@@ -104,8 +107,12 @@ def on_info_submit(**k):
         conecting_satus_msg = tk.Label(master=CURRENT_FRAME.frame,font=(CONFIG.win_font,20),text=lable,fg=CONFIG.win_palete[3],bg=CONFIG.win_palete[1])
         conecting_satus_msg.grid(row=0,column=0)
         CURRENT_FRAME.pack()
-        wait_till_start(sock,(host,port),queue)
-
+        #wait_till_start(sock,(host,port),queue)
+        while True :
+            try:
+                print(queue.get_nowait())
+            except:
+                pass
 
 # NAME INPUT 
 lable = "Name :"
@@ -177,18 +184,17 @@ def wait_till_start(sock,addr,queue):
         try : 
             q_data , flag = queue.get_nowait()
 
-
             if flag == "disp":current_player_count.config(text=q_data)
 
             if flag == "start": 
                 current_player_count.config(text=q_data)
                 waiting_lable.config(text="Room Full")
                 root.update()
-                break
+                #break
         except:
             pass
         root.update()
-    main_loop(sock,addr)
+    #main_loop(sock,addr,root,queue)
 
     
 
@@ -206,17 +212,11 @@ def wait_till_start(sock,addr,queue):
 # nickname : client sending nickname to server
 #
 
-def main_loop(sock,server_addr) :
+def main_loop(sock:ntwk.connection,server_addr,root:tk.Tk,recv_queue:thrd_queue.Queue) :
     global CURRENT_FRAME
-
-
     TEMP_PLAYER_HAND = []
     TEMP_DISCARD_PILE = []
     TEMP_PLAYERS_HAND_SIZES = []
-
-    CURRENT_FRAME.frame.destroy()
-    CURRENT_FRAME = make_new_frame() 
-    CURRENT_FRAME.pack()
 
     class card_img():
         def __init__(self,path,master):
@@ -244,21 +244,12 @@ def main_loop(sock,server_addr) :
 
         # disp cards on window
 
-        card_frame = tk.Frame(master=CURRENT_FRAME.frame)
-        card_frame.grid(row=0,column=0)
-
-        for card in TEMP_PLAYER_HAND.deck :
-            print(card.asset_path)
-            img = card_img(card.asset_path,card_frame)
-            img.pack()
-        card_frame.grid(row=0,column=0)
-
-
+    print(sock)
+    print(sock.adress,sock.sock,sock.server)
 
     while True : 
         # recive data 
-        msg,flag = sock.recv()
-
+        flag,msg = 3,2
         # GAME UPDATE
 
         if flag == "gameUpdate" :
