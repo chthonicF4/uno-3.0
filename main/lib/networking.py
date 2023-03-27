@@ -1,4 +1,4 @@
-import socket , pickle , time
+import socket , pickle , time ,math
 from random import randint
 
 
@@ -38,9 +38,16 @@ class connection():
 
     def send(self,msg,flag=""):
         # send messages yk 
-        msg = pickle.dumps((msg,flag))
-        self.sock.send(msg)
-        time.sleep(0.01)
+        def string_deconstruct(size:int,str:str):
+            out = []
+            for x in range(math.floor(len(str)/size)):
+                out.append(str[0:size])
+                str = str[size:]
+            out.append(str)
+            return out
+        
+        for part in string_deconstruct(1024,pickle.dumps((msg,flag))):
+            self.sock.send(part)
 
     
     def recv(self):
