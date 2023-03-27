@@ -61,8 +61,6 @@ class connection():
                 msg = pickle.loads(Pmsg)
             except :
                 loaded == False
-
-                print (Pmsg)
             if loaded == True and msg != None:
                 break
         return msg            

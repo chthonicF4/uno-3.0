@@ -1,6 +1,6 @@
 
 # modules , imports need to change based on the current working directory
-import threading as thrd , pickle , queue as thrd_queue
+import threading as thrd, queue as thrd_queue ,time
 
 if __name__ == "__main__" :
     import lib.networking as ntwk ,tkinter as tk ,CONFIG # networking functions and classes
@@ -15,17 +15,15 @@ else :
 
 # --------- WINDOW STUFF -------------
 
-win_palete = CONFIG.win_palete
-
-root = None
-
+# make the root var the window , add title from config , set base geometry and configs
 root = tk.Tk()
 root.title(CONFIG.win_title)
 root.geometry(f"{CONFIG.win_width}x{CONFIG.win_height}")
-root.config(bg=win_palete[1])
+root.config(bg=CONFIG.win_palete[1])
 root.columnconfigure(weight=1,index=0)
 root.rowconfigure(weight=1,index=0)
 
+# define class that basicaly clears the winow in one go so i have a blank slate to work with.
 
 class make_new_frame() :
     def __init__(self):
@@ -33,7 +31,7 @@ class make_new_frame() :
             master=root,
             width=CONFIG.win_width,
             height=CONFIG.win_height,
-            bg=win_palete[1]
+            bg=CONFIG.win_palete[1]
             )
         self.frame.columnconfigure(weight=1,index=0)
         self.frame.rowconfigure(weight=1,index=0)
@@ -41,16 +39,21 @@ class make_new_frame() :
     def pack(self):
         self.frame.grid(sticky=tk.NSEW)
 
+# make a frame and pack it
 
 CURRENT_FRAME = make_new_frame()
 CURRENT_FRAME.pack()
 
 
-# --------------------------THE CODE THAT ACTUALY DOES STUFF-----------------------------------
+# ---------------------------------------------------------------------------------------
+##################### START OF ACCTUAL CODE (NOT JUST WINDOW SETUP) #####################
+# ---------------------------------------------------------------------------------------
 
 
 # ------- inital clients conecting ---------- (waiting for game to start)
 
+
+# make frame for all of the wigites to be organised into and set its config.
 entry_frame = tk.Frame(master=CURRENT_FRAME.frame,bg=CONFIG.win_palete[1])
 CURRENT_FRAME.frame.columnconfigure(index=0,weight=1)
 CURRENT_FRAME.frame.rowconfigure(index=0,weight=1)
@@ -71,48 +74,98 @@ class entry_box(): # class for info entry boxes
     def dissable(self):
         self.box.config(state="disabled")
 
+# -------------------------- TO BE CALLED WHEN INFO IS SUBBMITED (name and server addr) -------------------------------------------------------------
 def on_info_submit(**k):
     global CURRENT_FRAME
     sock = ntwk.connection()
     # get sever addr 
     addr = server_address_box.get_box()
-    #decode addr
-    try:
-        queue = thrd_queue.Queue()
 
-        def recv_start_loop(sock,queue):
-            while True:
-                print("waiting for data")
-                data = sock.recv()
-                queue.put(data)
+    #decode addr 
+    seperator_index = addr.index(":")
+    host , port = addr[:seperator_index] , int(addr[seperator_index+1:])
 
-        seperator_index = addr.index(":")
-        host , port = addr[:seperator_index] , int(addr[seperator_index+1:])
+    # try to connect to server 
+    try :
         sock.connect((host,port))
-        sock.send(name_box.get_box())
-
-        recv_start_loop_thread = thrd.Thread(target=recv_start_loop,daemon=True,name="Start recv thread",args=(sock,queue))
-        recv_start_loop_thread.start()
 
     except :
+
+        # show an error message and try again
         lable = "Server diddn't respond , make sure the address is correct"
         error_lable = tk.Label(master=entry_frame,text=lable,font=(CONFIG.win_font,10),fg="red",bg=CONFIG.win_palete[1])
         error_lable.grid(row=3,column=0)
-    else:
-        root.title(f"{CONFIG.win_title} {(host,port)} : {name_box.get_box()}")
-        # make new frame saying connecting
-        CURRENT_FRAME.frame.destroy()
-        CURRENT_FRAME = make_new_frame()        
-        lable = "Conected!"
-        conecting_satus_msg = tk.Label(master=CURRENT_FRAME.frame,font=(CONFIG.win_font,20),text=lable,fg=CONFIG.win_palete[3],bg=CONFIG.win_palete[1])
-        conecting_satus_msg.grid(row=0,column=0)
-        CURRENT_FRAME.pack()
-        #wait_till_start(sock,(host,port),queue)
-        while True :
-            try:
-                print(queue.get_nowait())
-            except:
-                pass
+        return
+    
+    # start listen thread
+    queue = thrd_queue.Queue()
+    def recv_thread_func(sock,queue):
+        while True : queue.put(sock.recv())
+    
+    recv_thread = thrd.Thread(target=recv_thread_func,daemon=True,name="recv thread",args=(sock,queue))
+    recv_thread.start()
+
+    # send sever nickname
+    sock.send(name_box.get_box())
+
+    # ----- update window -----
+
+    # update widnow name to include server addr and nickname of client
+    root.title(f"{CONFIG.win_title} {(host,port)} : {name_box.get_box()}")
+
+    # make new frame with connection update 
+    CURRENT_FRAME.frame.destroy()
+    CURRENT_FRAME = make_new_frame()
+    CURRENT_FRAME.pack()
+
+    # make a frame centered in the middle of the window
+    waiting_room_frame = tk.Frame(master=CURRENT_FRAME.frame,width=1,height=1,bg=CONFIG.win_palete[1])
+    waiting_room_frame.grid(row=0,column=0)
+
+    # lable saying "waiting for players to start"
+    waiting_lable = tk.Label(
+        master=waiting_room_frame,
+        font=(CONFIG.win_font,20),
+        text="Waiting for players to start",
+        fg=CONFIG.win_palete[3],
+        bg=CONFIG.win_palete[1]
+        )
+    
+    waiting_lable.grid(row=0,column=0)
+    
+    # loading bar saying "PLAYERS[----    ]"
+    current_player_count = tk.Label(
+        master=waiting_room_frame,
+        font=(CONFIG.win_font,20),
+        text="PLAYERS",
+        fg=CONFIG.win_palete[3],
+        bg=CONFIG.win_palete[1]
+        )
+
+    current_player_count.grid(row=1,column=0)
+
+    # wait until game starts , in the mean time update the loading bar.
+    while True :
+        # get data from the queue
+        try :
+            data , flag = queue.get_nowait()
+        except:
+            root.update()
+            continue
+
+        if flag == "disp": # if the data is a loading bar update
+            current_player_count.config(text=data)
+
+        if flag == "start": # when the game starts update loading bar , write room full and then run mainloop :
+            current_player_count.config(text=data)
+            waiting_lable.config(text="Room Full")
+            root.update()
+            break
+        root.update()
+    main_loop(sock,addr,root,queue)  
+# ----------------------------------------------------------------------------------------
+
+# --------------- info input to join server , name and sever addr as well as a submit button ---------------
 
 # NAME INPUT 
 lable = "Name :"
@@ -150,67 +203,30 @@ submit_button = tk.Button(
     master=entry_frame,
     borderwidth=0,
     text=lable,
-    bg=win_palete[2],
+    bg=CONFIG.win_palete[2],
     font=(CONFIG.win_font,18),
-    fg=win_palete[0],
-    activebackground=win_palete[3],
+    fg=CONFIG.win_palete[0],
+    activebackground=CONFIG.win_palete[3],
     command=on_info_submit
     )
 submit_button.grid(row=2,column=0,padx=20,pady=20)
 
 
-def wait_till_start(sock,addr,queue):
 
-    # wait unill recive "start" flag
-    global CURRENT_FRAME
+# ----------------------------------------------------------------------------------------
+################################ MAIN LOOP ###############################################
+# ----------------------------------------------------------------------------------------
 
-    CURRENT_FRAME.frame.destroy()
-    CURRENT_FRAME = make_new_frame()
-    lable = "Waiting for players to start" 
-
-    waiting_room_frame = tk.Frame(master=CURRENT_FRAME.frame,width=1,height=1,bg=CONFIG.win_palete[1])
-
-    waiting_lable = tk.Label(master=waiting_room_frame,font=(CONFIG.win_font,20),text=lable,fg=CONFIG.win_palete[3],bg=CONFIG.win_palete[1])
-    lable = "PLAYERS"
-    current_player_count = tk.Label(master=waiting_room_frame,font=(CONFIG.win_font,20),text=lable,fg=CONFIG.win_palete[3],bg=CONFIG.win_palete[1])
-    CURRENT_FRAME.pack()
-    waiting_room_frame.grid(row=0,column=0)
-
-    
-    waiting_lable.grid(row=0,column=0)
-    current_player_count.grid(row=1,column=0)
-
-    while True :
-        try : 
-            q_data , flag = queue.get_nowait()
-
-            if flag == "disp":current_player_count.config(text=q_data)
-
-            if flag == "start": 
-                current_player_count.config(text=q_data)
-                waiting_lable.config(text="Room Full")
-                root.update()
-                #break
-        except:
-            pass
-        root.update()
-    #main_loop(sock,addr,root,queue)
-
-    
-
-# ------- start game ---------------(when receve message that game is starting)
-
-# start main listen loop from sever 
 
 # ---- network flags ----
-#
+
 # disp : message send from server to be displayed by client to user
 # start : tells clients the game is  starting 
 # close : tells client to close connection / this connection is closing (msg half is to be displayed as reason) 
 # dispHand : client should display the hand data
 # choseCard : tells client to choose a card and send back the card id
 # nickname : client sending nickname to server
-#
+
 
 def main_loop(sock:ntwk.connection,server_addr,root:tk.Tk,recv_queue:thrd_queue.Queue) :
     global CURRENT_FRAME
@@ -243,24 +259,30 @@ def main_loop(sock:ntwk.connection,server_addr,root:tk.Tk,recv_queue:thrd_queue.
         print(TEMP_DISCARD_PILE.deck[0].disp_name)
 
         # disp cards on window
-
-    print(sock)
-    print(sock.adress,sock.sock,sock.server)
+        return
 
     while True : 
-        # recive data 
-        flag,msg = 3,2
+        # retrive data
+        while True :
+            # wait untill there is more data to procces , also update the window while waiting
+            try: 
+                msg , flag = recv_queue.get_nowait()
+            except:
+                root.update()
+                time.sleep(CONFIG.network_delay)
+            else:
+                break
+
         # GAME UPDATE
 
         if flag == "gameUpdate" :
+            # update the temp variables 
             TEMP_PLAYERS_HAND_SIZES = msg[0]
             TEMP_PLAYER_HAND = msg[1]
             TEMP_DISCARD_PILE = msg[2]
+            # then display the game
             display_game()
 
-            
-            pass
-        
         # CLOSE data = close reason 
         
         elif flag == "close" :
