@@ -1,6 +1,4 @@
-import random,os
-
-root_dir = os.getcwd()
+import random
 
 class card():
 
@@ -9,7 +7,7 @@ class card():
         self.type = k.get("type",self.type)
         self.ID = k.get("ID",self.ID)
         self.name = f"{self.colour} {self.type}"
-        self.asset_path = f"{root_dir}\\assets\\cards\\{self.colour}\\{self.type}.png"
+        self.asset_path = f"assets\\cards\\{self.colour}\\{self.type}.png"
         self.disp_name = f"{self.name:<11} : {self.ID:<3} {self.asset_path}"
 
     def __init__(self,colour,type,ID):
@@ -17,7 +15,7 @@ class card():
         self.type = type 
         self.ID = ID
         self.name = f"{self.colour} {self.type}"
-        self.asset_path = f"{root_dir}\\assets\\cards\\{self.colour}\\{self.type}.png"
+        self.asset_path = f"assets\\cards\\{self.colour}\\{self.type}.png"
         self.disp_name = f"{self.name:<11} : {self.ID:<3} {self.asset_path}"
         pass
 
@@ -52,8 +50,7 @@ class deck():
         for index , card in enumerate(self.deck) :
             if card.ID == ID :
                 return index
-        return "coljasdasd"
-        pass
+        return None
 
 
     def add(self,card):
