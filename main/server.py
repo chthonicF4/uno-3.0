@@ -131,7 +131,7 @@ while True :
 
 brodcast("Game is starting","start")
 print(clients)
-time.sleep(2)
+time.sleep(CONFIG.action_delay)
 # ------------------ GAME CODE 4REAL -----------------------
 
 # ----- init ------
@@ -161,11 +161,6 @@ for client in clients : players.append(player(client[0],deck(),client[1]))
 
 number_of_cards = 7
 
-for gamer in players :
-    # give cards
-    for handout in range(number_of_cards): 
-        gamer.pick_up()
-
 
 def game_Update_for_client(client:player):
     # returns a list consisting of a list of all players and therir hand counts (including their own) their hand and the discard pile
@@ -187,7 +182,12 @@ def game_update():
 
 # send each player their hand and the discard pile
 game_update()
-
+for handout in range(number_of_cards):
+    for gamer in players :
+        # give cards 
+        gamer.pick_up()
+        time.sleep(CONFIG.action_delay)
+        game_update()
 
 ### #### ### ## ## ## # # # # # # # # # # # ## 
 

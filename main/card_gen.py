@@ -100,13 +100,12 @@ def gen_cards() :
             bar = loading_bars.loadingbar(number/len(order),10,"loading card assets")
 
             loading_bar.config(text=bar)
+            root.update()
     time.sleep(0.5)
-    root.destroy()
     return
 
-gen_thread = thrd.Thread(target=gen_cards)
-gen_thread.start()
-root.mainloop()
+gen_cards()
+root.destroy()
 
         
 

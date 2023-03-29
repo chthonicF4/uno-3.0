@@ -1,15 +1,15 @@
 
 # modules , imports need to change based on the current working directory
-import threading as thrd, queue as thrd_queue ,time
+import threading as thrd, queue as thrd_queue ,time ,os
 
 if __name__ == "__main__" :
-    import lib.networking as ntwk ,tkinter as tk ,CONFIG # networking functions and classes
+    import lib.networking as ntwk ,tkinter as tk ,CONFIG  ,lib.game_widgets as g_widgets# networking functions and classes
     from lib.card import * # imports the classes used for cards and decks
     import card_gen # run card gen 
 
     
 else :
-    import main.lib.networking as ntwk , tkinter as tk , main.CONFIG as CONFIG # networking functions and classes
+    import main.lib.networking as ntwk , tkinter as tk , main.CONFIG as CONFIG , main.lib.game_widgets as g_widgets # networking functions and classes
     from main.lib.card import * # imports the classes used for cards and decks
     import main.card_gen # run card gen 
 
@@ -22,7 +22,8 @@ root.geometry(f"{CONFIG.win_width}x{CONFIG.win_height}")
 root.config(bg=CONFIG.win_palete[1])
 root.columnconfigure(weight=1,index=0)
 root.rowconfigure(weight=1,index=0)
-
+root_dir = os.path.dirname(os.path.realpath(__file__))
+print(root_dir)
 # define class that basicaly clears the winow in one go so i have a blank slate to work with.
 
 class make_new_frame() :
@@ -210,6 +211,12 @@ submit_button = tk.Button(
     command=on_info_submit
     )
 submit_button.grid(row=2,column=0,padx=20,pady=20)
+global info_submitted
+info_submitted = False
+
+def submit_wrapper():
+    info_submitted = True
+    on_info_submit()
 
 
 
@@ -228,21 +235,22 @@ submit_button.grid(row=2,column=0,padx=20,pady=20)
 # nickname : client sending nickname to server
 
 
-def main_loop(sock:ntwk.connection,server_addr,root:tk.Tk,recv_queue:thrd_queue.Queue) :
-    global CURRENT_FRAME
+def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue.Queue) :
+    global CURRENT_FRAME , root
     TEMP_PLAYER_HAND = []
     TEMP_DISCARD_PILE = []
     TEMP_PLAYERS_HAND_SIZES = []
 
-    class card_img():
-        def __init__(self,path,master):
-            self.path = path
-            self.canvas = tk.Canvas(master=master,width=166,height=265)
-            self.img = tk.PhotoImage(file=path)
-            self.canvas.create_image(83,135,image=self.img)
 
-        def pack(self):
-            self.canvas.pack()
+    def print_id(id):
+        print(id)
+
+    root.update()
+
+    client_deck = g_widgets.hand_gui([],print_id,CONFIG.win_width-20,master=root)
+    client_deck.frame.grid(column=0,row=0)
+
+    root.update()
 
     def display_game():
         print("\n")
@@ -257,22 +265,27 @@ def main_loop(sock:ntwk.connection,server_addr,root:tk.Tk,recv_queue:thrd_queue.
         title = "DISCARD PILE"
         print(f"{title:^18}")
         print(TEMP_DISCARD_PILE.deck[0].disp_name)
+        cards = []
+        for card in TEMP_PLAYER_HAND.deck :#
+            path = root_dir+r"\\" + card.asset_path
+            print(path)
+            cards.append((path,card.ID))
+        client_deck.set_cards(cards)
 
         # disp cards on window
         return
 
     while True : 
         # retrive data
-        while True :
-            # wait untill there is more data to procces , also update the window while waiting
-            try: 
-                msg , flag = recv_queue.get_nowait()
-            except:
-                root.update()
-                time.sleep(CONFIG.network_delay)
-            else:
-                break
+        client_deck.update()
+        root.update()
+        try: 
+            msg , flag = recv_queue.get_nowait()
+        except:
+            time.sleep(1/120)
+            continue
 
+        print(msg,flag)
         # GAME UPDATE
 
         if flag == "gameUpdate" :
@@ -282,6 +295,9 @@ def main_loop(sock:ntwk.connection,server_addr,root:tk.Tk,recv_queue:thrd_queue.
             TEMP_DISCARD_PILE = msg[2]
             # then display the game
             display_game()
+
+        elif True:
+            continue
 
         # CLOSE data = close reason 
         
@@ -298,7 +314,7 @@ def main_loop(sock:ntwk.connection,server_addr,root:tk.Tk,recv_queue:thrd_queue.
         
         # CHOOSE CARD
                 
-        elif flag == "chooseCard":
+        elif False :#flag == "chooseCard":
             # print hand and ask for card choice by id (also check if id is in hand)
 
             display_game()
@@ -310,8 +326,8 @@ def main_loop(sock:ntwk.connection,server_addr,root:tk.Tk,recv_queue:thrd_queue.
                 except:
                     print("that is not a number , please choose an id from above")
                     continue
-                for cards in TEMP_PLAYER_HAND.deck:
-                    if cards.ID == id_choice or id_choice == -1:
+                for card in TEMP_PLAYER_HAND.deck:
+                    if card.ID == id_choice or id_choice == -1:
                         valid_choice = True
                         break
                 if valid_choice == False :
@@ -345,3 +361,7 @@ def main_loop(sock:ntwk.connection,server_addr,root:tk.Tk,recv_queue:thrd_queue.
 
         else :
             pass
+
+while not info_submitted :
+    root.update()
+    time.sleep(1/60)

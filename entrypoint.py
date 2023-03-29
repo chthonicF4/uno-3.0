@@ -1,15 +1,18 @@
-import tkinter as tk , main.CONFIG as CONFIG , sys
+import tkinter as tk , main.CONFIG as CONFIG , time
 
-
+global stop ,choice
+stop = False
+choice = ""
 
 def join(**k):
-    root.destroy()
-    import main.client
+    global stop ,choice
+    stop = True
+    choice = "client"
 
 def host(**k):
-    root.destroy()
-    import main.server
-
+    global stop ,choice
+    stop = True
+    choice = "server"
 
 
 
@@ -50,6 +53,16 @@ client_button.pack(padx=padding,pady=padding)
 host_button = tk.Button(master=frame,command=host,width=20,height=2,text="host",bg=win_palete[2],font=(win_font,18),fg=win_palete[0],activebackground=win_palete[3])
 host_button.pack(padx=padding,pady=padding)
 
-root.mainloop()
+
+while stop != True :
+    root.update()
+    time.sleep(1/60)
+root.destroy()
+if choice == "client":
+    import main.client
+elif choice == "server":
+    import main.server
+
+
 
 
