@@ -253,27 +253,7 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
     root.update()
 
     def display_game():
-        print("\n")
-        # player hand sizes
-        title = "CARD COUNT"
-        print(f"{title:^18}")
-        for player in TEMP_PLAYERS_HAND_SIZES :
-            print(f"{player[1]:^3} : {player[0]}")
-        title = "YOUR HAND"
-        print(f"{title:^18}")
-        TEMP_PLAYER_HAND.display()
-        title = "DISCARD PILE"
-        print(f"{title:^18}")
-        print(TEMP_DISCARD_PILE.deck[0].disp_name)
-        cards = []
-        for card in TEMP_PLAYER_HAND.deck :#
-            path = root_dir+r"\\" + card.asset_path
-            print(path)
-            cards.append((path,card.ID))
-        client_deck.set_cards(cards)
-
-        # disp cards on window
-        return
+        pass
 
     while True : 
         # retrive data
