@@ -242,13 +242,16 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
     TEMP_PLAYERS_HAND_SIZES = []
 
 
-    def print_id(id):
+    def send_id(id):
         print(id)
+        sock.send(id,"chooseCard")
+        client_deck.disable()
 
     root.update()
 
-    client_deck = g_widgets.hand_gui([],print_id,CONFIG.win_width-20,master=root)
+    client_deck = g_widgets.hand_gui([],send_id,CONFIG.win_width-20,height=170,master=root,bg=CONFIG.win_palete[2])
     client_deck.frame.grid(column=0,row=0)
+    client_deck.disable()
 
     root.update()
 
@@ -276,8 +279,6 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
             # then display the game
             display_game()
 
-        elif True:
-            continue
 
         # CLOSE data = close reason 
         
@@ -294,29 +295,13 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
         
         # CHOOSE CARD
                 
-        elif False :#flag == "chooseCard":
+        elif flag == "chooseCard":
             # print hand and ask for card choice by id (also check if id is in hand)
 
             display_game()
 
-            valid_choice = False
-            while valid_choice != True :
-                try :
-                    id_choice = int(input(f"\nChoose a card to play: "))
-                except:
-                    print("that is not a number , please choose an id from above")
-                    continue
-                for card in TEMP_PLAYER_HAND.deck:
-                    if card.ID == id_choice or id_choice == -1:
-                        valid_choice = True
-                        break
-                if valid_choice == False :
-                    print("invalid choice please choose again <client>")
-                else : 
-                    break
+            client_deck.enable()
 
-
-            sock.send(id_choice,"chooseCard")
         
         
         # CHOOSE A COLOUR 
