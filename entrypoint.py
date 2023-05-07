@@ -56,7 +56,7 @@ host_button.pack(padx=padding,pady=padding)
 
 while stop != True :
     root.update()
-    time.sleep(1/60)
+    time.sleep(1/CONFIG.framerate)
 root.destroy()
 if choice == "client":
     import main.client

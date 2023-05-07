@@ -50,6 +50,7 @@ def gen_deck():
 # chooseCard : tells client to choose a card and send back the card id
 # nickname : client sending nickname to server
 # chooseColour : client needs to pick a colour
+# turnend : tells the client their turn is over
 #
 #
 
@@ -336,6 +337,8 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
                 else :
                     client.conn.send("cant play that card right now","disp")
                     continue
+
+        client.conn.send("card played , turn ended","turnend")
                     
 
     # send game update to all clients to show changes

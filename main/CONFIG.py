@@ -11,3 +11,4 @@ SETTINGS = {
     "+10":False,
     "+ stacking":True
 }
+framerate = 60

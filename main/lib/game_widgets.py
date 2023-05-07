@@ -151,6 +151,10 @@ class hand_gui():
         for widget in self.widgets :
             widget.button['state'] = tk.DISABLED
 
+class pickup_button():
+    def __init__(self):
+        pass
+
 if __name__ == "__main__" :
     import time
     root = tk.Tk()
@@ -201,6 +205,7 @@ if __name__ == "__main__" :
             fps_counter.config(text=f"fps: {1/(time.time()-start_frame):.2f}")
 
     mainloop()
+
 
         
 

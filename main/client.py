@@ -247,7 +247,7 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
     def send_id(id):
         print(id)
         sock.send(id,"chooseCard")
-        client_deck.disable()
+
 
     client_deck = g_widgets.hand_gui([],send_id,width=(CONFIG.win_width-20),height=170,master=root,bg=CONFIG.win_palete[2])
     client_deck.frame.place(x=100,y=100)
@@ -296,7 +296,8 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
             # print hand and ask for card choice by id (also check if id is in hand)
             client_deck.enable()
 
-        
+        elif flag == "turnend":
+            client_deck.disable()
         
         # CHOOSE A COLOUR 
 
