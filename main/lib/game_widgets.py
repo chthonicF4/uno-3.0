@@ -6,7 +6,6 @@ class hand_gui():
     class card_img():
         def __init__(self,path,master,name,on_click,width,height,bg):
             self.path = path
-            self.raised = False
             self.name = name
             self.width = int(width)
             self.height = int(height)
@@ -24,23 +23,30 @@ class hand_gui():
                 width=self.width,height=self.height,
                 image=self.img,
                 command= lambda : on_click(name),
-                name=str(name),
+                #name=str(name),
                 state="normal",
                 relief="flat",
                 bd=0,
                 anchor=tk.NW,
-                bg="blue"
-                )
+                bg=bg
+                )   
 
         def place(self,**k):
-            x,y = k.get("x") , k.get("y")
-            if x == None : x = self.button.winfo_x()
-            if y == None : y = self.button.winfo_y()
+            x = k.get("x")
+            y = k.get("y")
             self.button.place(x=x,y=y)
+
+        def resize(self,new_width,new_height):
+            self.width = int(new_width)
+            self.height = int(new_height)
+            self.img = Image.open(self.path)
+            self.img.thumbnail((self.width,self.height))
+            self.img = ImageTk.PhotoImage(self.img)
+            self.button.config(width=self.width,height=self.height,image=self.img)
                 
     def __init__(self,cards,on_click,width,height,master,bg):
         self.widgets = []
-        self.frame = tk.Frame(width=width,height=height,master=master,bg="red")
+        self.frame = tk.Frame(width=width,height=height,master=master,bg=bg)
         self.funct_out = on_click
         self.width = width
         self.height = height
@@ -50,7 +56,22 @@ class hand_gui():
         self.bg = bg
         self.add_cards(cards)
         self.draw_cards()
+        self.frame.bind("<Configure>", self.calculate_proportions)
         pass
+
+    def calculate_proportions(self,event):
+        if not(event.widget == self.frame) :
+            return
+        self.width = event.width
+        self.height = event.height
+        self.card_height = (self.height*0.8)
+        self.card_width = ((162/254)*self.height*0.8)
+        self.max_raise_height = int(self.height*0.2)
+
+        for card in self.widgets :
+            card.resize(self.card_width,self.card_height)
+
+        self.draw_cards()
     
     def raise_card(self,index,framerate):
         card = self.widgets[index]
@@ -73,6 +94,8 @@ class hand_gui():
             card.place(y=new_y)
 
     def set_cards(self,cards:list):
+        for card in self.widgets :
+            card.button.destroy()
         self.widgets = []
         self.add_cards(cards)
 
@@ -91,16 +114,25 @@ class hand_gui():
     def draw_cards(self):
         number_of_cards = len(self.widgets)
 
+        # resize cards 
+
+
         if number_of_cards == 0:
             return
+        if number_of_cards == 1 :
+            self.widgets[0].place(x=(self.width -self.card_width)//2)
+            return
+
         
         spacing =(self.width-self.card_width)/(number_of_cards -1)
+        offset = 0
 
         if spacing > self.card_width : 
             spacing = self.card_width
+            offset = (self.width - self.card_width*number_of_cards)//2
 
         for index,card in enumerate(self.widgets) :
-            card.place(x=index*spacing,y=0)
+            card.place(x=(index*spacing + offset))
 
     def update(self,framerate):
         x,y = self.frame.winfo_pointerxy()
@@ -119,30 +151,29 @@ class hand_gui():
         for widget in self.widgets :
             widget.button['state'] = tk.DISABLED
 
-
-
-
-
-
-
-
 if __name__ == "__main__" :
     import time
     root = tk.Tk()
     root.geometry("500x500")
-    path = r"C:\Users\DanTrinder\Documents\GitHub repositrys\uno-3.0\main\assets\cards\green\+2.png"
+    path = r"C:\Users\dan\OneDrive\Documents\GitHub\uno 3.0\main\assets\cards\red\8.png"
     cards = [
-        (path,1),
-        (path,2),
-        (path,3),
-        (path,4),
-        (path,5)
+        (path,1)
+   
     ]
 
     # card dims width=164 , height=252
 
-    deck = hand_gui(master=root,cards=cards,on_click=print,width=300,height=300,bg="green")
-    deck.frame.pack()
+
+    def add(id):
+        print(id)
+        deck.add_cards([(path,2)])
+
+
+    root.columnconfigure(weight=1,index=0)
+    root.rowconfigure(weight=1,index=0)
+
+    deck = hand_gui(master=root,cards=cards,on_click=add,width=830,height=170,bg="white")
+    deck.frame.grid(column=0,row=0,sticky=tk.NSEW)
 
     def frame_update(framerate):
         deck.update(framerate)
@@ -165,12 +196,12 @@ if __name__ == "__main__" :
             else:
                 time.sleep(1/10)
             root.update()
-            if not (time_left() < 0) : 
-                time.sleep(time_left())
+            if not (time_left() <= 0.001) : 
+                time.sleep(time_left()-0.001)
             fps_counter.config(text=f"fps: {1/(time.time()-start_frame):.2f}")
-
 
     mainloop()
 
         
 
+ 

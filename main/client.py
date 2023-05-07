@@ -23,7 +23,6 @@ root.config(bg=CONFIG.win_palete[1])
 root.columnconfigure(weight=1,index=0)
 root.rowconfigure(weight=1,index=0)
 root_dir = os.path.dirname(os.path.realpath(__file__))
-print(root_dir)
 # define class that basicaly clears the winow in one go so i have a blank slate to work with.
 
 class make_new_frame() :
@@ -241,32 +240,27 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
     TEMP_DISCARD_PILE = []
     TEMP_PLAYERS_HAND_SIZES = []
 
+    CURRENT_FRAME.frame.destroy()
+    
+    
 
     def send_id(id):
         print(id)
         sock.send(id,"chooseCard")
         client_deck.disable()
 
-    root.update()
-
-    client_deck = g_widgets.hand_gui([],send_id,CONFIG.win_width-20,height=170,master=root,bg=CONFIG.win_palete[2])
-    client_deck.frame.grid(column=0,row=0)
+    client_deck = g_widgets.hand_gui([],send_id,width=(CONFIG.win_width-20),height=170,master=root,bg=CONFIG.win_palete[2])
+    client_deck.frame.place(x=100,y=100)
     client_deck.disable()
 
-    root.update()
 
-    def display_game():
-        pass
 
-    while True : 
-        # retrive data
-        client_deck.update()
-        root.update()
+
+    def get_server_requests():
         try: 
             msg , flag = recv_queue.get_nowait()
-        except:
-            time.sleep(1/120)
-            continue
+        except thrd_queue.Empty :
+            return
 
         print(msg,flag)
         # GAME UPDATE
@@ -277,7 +271,10 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
             TEMP_PLAYER_HAND = msg[1]
             TEMP_DISCARD_PILE = msg[2]
             # then display the game
-            display_game()
+            new_cards = [(root_dir+"\\"+card.asset_path,card.ID) for card in TEMP_PLAYER_HAND.deck]
+            print(new_cards)
+            client_deck.set_cards(new_cards)
+            pass
 
 
         # CLOSE data = close reason 
@@ -285,7 +282,7 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
         elif flag == "close" :
             sock.close()
             print(f"<server> : {msg}")
-            break
+            return "exit"
             pass
         
         # DISPLAY
@@ -297,9 +294,6 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
                 
         elif flag == "chooseCard":
             # print hand and ask for card choice by id (also check if id is in hand)
-
-            display_game()
-
             client_deck.enable()
 
         
@@ -316,7 +310,7 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
             while True :
                 try:
                     chosen_colour_index = int(input("number >> "))
-                    chosen_colour = colour[chosen_colour_index]
+                    colour[chosen_colour_index]
                 except:
                     print("Invalid input, please choose a number from above.")
                     continue
@@ -327,6 +321,33 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
         else :
             pass
 
+    def frame_updates(framerate):
+
+        get_server_requests()
+        client_deck.update(framerate)
+
+        pass
+
+    def mainloop():
+        frame_rate = CONFIG.framerate
+        frame_time = 1/frame_rate
+        start_frame = time.time()  
+        time_left = lambda: frame_time - (time.time()-start_frame)
+        
+        # framerate
+        fps_counter = tk.Label(text="N/A")
+        fps_counter.place(x=0,y=0)
+
+        while True :
+            start_frame = time.time()
+            frame_updates(frame_rate)
+            root.update()
+            if not (time_left() <= 0.001) : 
+                time.sleep(time_left()-0.001)
+            fps_counter.config(text=f"fps: {1/(time.time()-start_frame):.2f}")
+
+    mainloop()
+
 while not info_submitted :
     root.update()
-    time.sleep(1/60)
+    time.sleep(1/CONFIG.framerate)

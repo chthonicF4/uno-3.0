@@ -1,89 +1,66 @@
-import tkinter as tk 
+import tkinter as tk ,time
 
-class hand_gui():
+root = tk.Tk(sync=True,baseName="TEST")
+root.geometry("500x500")
+root.minsize(width=900,height=650)
 
-    class card_img():
-        def __init__(self,path,master,name,on_click):
-            self.path = path
-            self.raised = False
-            self.y = 60
-            self.name = name
-            self.img = tk.PhotoImage(file=path)
-            self.button = tk.Button(
-                master=master,
-                width=164,height=252,
-                image=self.img,
-                command= lambda : on_click(name),
-                name=str(name),
-                state="normal",
-                relief="flat",
-                bd=0,
-                anchor=tk.NE
-                )
+root.columnconfigure(weight=1,index=0)
+root.rowconfigure(weight=1,index=0)
 
-        def pack(self,x):
-            self.button.place(x=x,y=60)
 
-        def card_raise(self):
-            if self.y == 0 :
-                return
-            else: self.y -= 10 
-            self.button.place(y=self.y)
-        
-        def card_lower(self):
-            if self.y == 60 :
-                return
-            else: self.y += 10
-            self.button.place(y=self.y)
-                
-    def __init__(self,cards,on_click,width):
-        self.widgets = []
-        self.frame = tk.Frame(width=width,height=312)
-        self.frame.pack()
-        self.funct_out = on_click
-        self.width = width
-        for card in cards :
-            self.add_card(card)
-        self.draw_cards()
-        pass
+
+# SIDE BAR
+
+side_bar = tk.Frame(
+    master=root,
+    bg="yellow",
+    width=250
+
+    )
+
+
+side_bar.grid(row=0,column=1,sticky=tk.NS)
+
+# main grid 
+
+main_grid = tk.Frame(
+    master=root,
+    bg= "red"
+
+)
+main_grid.grid(row=0,column=0,sticky=tk.NSEW)
+
+
+
+
+# -----------------------------------
+# framerate manager
+# ----------------------------------
+
+def frame_update(framerate):
+    pass
+
+
+
+def mainloop():
+    frame_rate = 60
+    frame_time = 1/frame_rate
+    start_frame = time.time()  
+    time_left = lambda: frame_time - (time.time()-start_frame)
     
-    def add_card(self,card:tuple):
-        self.widgets.append(self.card_img(card[0],self.frame,card[1],self.funct_out))
-        self.draw_cards()
-    
-    def remove_card(self,name):
-        for index , card in enumerate(self.widgets) :
-            if card.name == name :
-                self.widgets.pop(index).button.destroy()
-                break
-        self.draw_cards()
-    
-    def draw_cards(self):
-        if len(self.widgets) == 0:
-            return
-        card_spacing = (self.width-164)/len(self.widgets)
-        card_offset = (self.width-(len(self.widgets)*164))/2
-        if card_offset < 0 : card_offset = 0
-        if card_spacing >164 : card_spacing = 164
-        for index , card in enumerate(self.widgets):
-            card.pack((index*card_spacing)+card_offset)
+    # framerate
+    fps_counter = tk.Label(text="N/A")
+    fps_counter.place(x=0,y=0)
 
+    while True :
+        start_frame = time.time()
+        if not (root.focus_displayof() == None) :
+            frame_update(frame_rate)
+        else:
+            time.sleep(1/10)
+        root.update()
+        if not (time_left() <= 0.001) : 
+            time.sleep(time_left()-0.001)
+        fps_counter.config(text=f"fps: {1/(time.time()-start_frame):.2f}")
 
-
-    def update(self):
-        x,y = self.frame.winfo_pointerxy()
-        current_widget = self.frame.winfo_containing(x,y)
-        for widget in self.widgets :
-            if current_widget == widget.button :
-                widget.card_raise()
-            else: 
-                widget.card_lower()
-    
-    def enable(self):
-        for widget in self.widgets :
-            widget.button['state'] = tk.NORMAL
-
-    def disable(self):
-        for widget in self.widgets :
-            widget.button['state'] = tk.DISABLED
-
+mainloop()
