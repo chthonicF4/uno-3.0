@@ -338,7 +338,8 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
                     client.conn.send("cant play that card right now","disp")
                     continue
 
-        client.conn.send("card played , turn ended","turnend")
+        client.conn.send(chosen_id,"turnend")
+        time.sleep(CONFIG.network_delay)
                     
 
     # send game update to all clients to show changes
@@ -352,6 +353,7 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
         discard_pile.deck[0].update(colour = colours[chosen_colour[0]]) 
 
     game_update()
+    time.sleep(CONFIG.network_delay)
 
 # server turn loop
 

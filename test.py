@@ -18,8 +18,6 @@ side_bar = tk.Frame(
     width=250
 
     )
-
-
 side_bar.grid(row=0,column=1,sticky=tk.NS)
 
 # main grid 

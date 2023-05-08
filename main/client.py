@@ -235,45 +235,82 @@ def submit_wrapper():
 
 
 def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue.Queue) :
-    global CURRENT_FRAME , root
+    global CURRENT_FRAME , root ,TEMP_DISCARD_PILE,TEMP_PLAYER_HAND,TEMP_PLAYERS_HAND_SIZES
     TEMP_PLAYER_HAND = []
     TEMP_DISCARD_PILE = []
     TEMP_PLAYERS_HAND_SIZES = []
 
     CURRENT_FRAME.frame.destroy()
-    
-    
+
+    # window setup
+    root.minsize(width=900,height=650)
+    root.columnconfigure(weight=1,index=0)
+    root.rowconfigure(weight=1,index=0)
+
+    # SIDE BAR
+    side_bar = tk.Frame(
+        master=root,
+        bg="yellow",
+        width=250
+
+        )
+    side_bar.grid(row=0,column=1,sticky=tk.NS)
+
+    # main grid 
+    main_grid = tk.Frame(
+        master=root,
+        bg= "red"
+    )
+    main_grid.grid(row=0,column=0,sticky=tk.NSEW)
+    main_grid.columnconfigure(weight=1,index=0)
+    main_grid.rowconfigure(weight=1,index=0)
+
+    # other players 
+
+    players_frame = g_widgets.scrollableFrame(
+        main_grid,
+        bg="green",
+    )
+    players_frame.container.grid(row=0,column=0,sticky=tk.NSEW)
 
     def send_id(id):
         print(id)
         sock.send(id,"chooseCard")
 
-
-    client_deck = g_widgets.hand_gui([],send_id,width=(CONFIG.win_width-20),height=170,master=root,bg=CONFIG.win_palete[2])
-    client_deck.frame.place(x=100,y=100)
-    client_deck.disable()
-
-
-
+    # dumy deck
+    client_deck = g_widgets.hand_gui(
+        master=main_grid,
+        bg="blue",
+        height=200,
+        on_click=send_id,
+        width=10,
+        cards=[]
+    )
+    client_deck.frame.grid(row=1,column=0,sticky=tk.EW)
 
     def get_server_requests():
+        global TEMP_DISCARD_PILE,TEMP_PLAYER_HAND,TEMP_PLAYERS_HAND_SIZES
         try: 
             msg , flag = recv_queue.get_nowait()
         except thrd_queue.Empty :
             return
 
-        print(msg,flag)
+        print("DATA IN :",msg,flag)
         # GAME UPDATE
 
         if flag == "gameUpdate" :
+            try:
+                old_cards = [card.ID for card in TEMP_PLAYER_HAND.deck]
+            except AttributeError :
+                old_cards = []
             # update the temp variables 
             TEMP_PLAYERS_HAND_SIZES = msg[0]
             TEMP_PLAYER_HAND = msg[1]
             TEMP_DISCARD_PILE = msg[2]
             # then display the game
             new_cards = [(root_dir+"\\"+card.asset_path,card.ID) for card in TEMP_PLAYER_HAND.deck]
-            print(new_cards)
-            client_deck.set_cards(new_cards)
+            new_cards = [card for card in new_cards if card[1] not in old_cards]
+            client_deck.add_cards(new_cards)
             pass
 
 
@@ -297,6 +334,7 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
             client_deck.enable()
 
         elif flag == "turnend":
+            client_deck.remove_card(msg)
             client_deck.disable()
         
         # CHOOSE A COLOUR 
@@ -343,8 +381,9 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
             start_frame = time.time()
             frame_updates(frame_rate)
             root.update()
-            if not (time_left() <= 0.001) : 
-                time.sleep(time_left()-0.001)
+            tleft = time_left()-0.001
+            if not (tleft < 0) : 
+                time.sleep(tleft)
             fps_counter.config(text=f"fps: {1/(time.time()-start_frame):.2f}")
 
     mainloop()
