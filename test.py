@@ -1,4 +1,5 @@
 import tkinter as tk ,time
+import main.lib.game_widgets as g_widgets
 
 root = tk.Tk(sync=True,baseName="TEST")
 root.geometry("500x500")
@@ -30,7 +31,31 @@ main_grid = tk.Frame(
 )
 main_grid.grid(row=0,column=0,sticky=tk.NSEW)
 
+main_grid.columnconfigure(weight=1,index=0)
+main_grid.rowconfigure(weight=1,index=0)
 
+# other players 
+
+players_frame = g_widgets.scrollableFrame(
+    main_grid,
+    bg="green",
+)
+
+players_frame.container.grid(row=0,column=0,sticky=tk.NSEW)
+
+for index in range(4):
+    tk.Label(text=index,master=players_frame.scrollFrame).pack()
+
+
+# dumy deck
+
+deck = tk.Frame(
+    master=main_grid,
+    bg="blue",
+    height=200
+)
+
+deck.grid(row=1,column=0,sticky=tk.EW)
 
 
 # -----------------------------------

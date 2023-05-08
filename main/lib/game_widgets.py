@@ -1,4 +1,5 @@
 import tkinter as tk 
+from tkinter import ttk
 from PIL import Image , ImageTk
 
 class hand_gui():
@@ -151,9 +152,46 @@ class hand_gui():
         for widget in self.widgets :
             widget.button['state'] = tk.DISABLED
 
-class pickup_button():
-    def __init__(self):
-        pass
+class scrollableFrame():
+    def __init__(self,master,bg):
+        self.container = tk.Frame(
+            master=master,
+            bg=bg
+        )
+        self.canvas = tk.Canvas(
+            master=self.container,
+            bg=bg,
+            highlightthickness=0
+        )
+        self.scrollBar = tk.Scrollbar(
+            master=self.container,
+            troughcolor=bg,
+            orient="vertical",
+            command=self.canvas.yview
+        )
+        self.scrollFrame = tk.Frame(
+            master=self.canvas,
+            bg=bg
+        )
+        self.scrollFrame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
+            )
+        )
+        self.scrollFrameID = self.canvas.create_window(
+            (0,0),
+            anchor="nw",
+            window=self.scrollFrame,
+        )
+        self.canvas.configure(yscrollcommand=self.scrollBar.set)
+        self.canvas.pack(side="left",fill="both",expand=True)
+        self.canvas.bind("<Configure>", self.resize_frame)
+        self.scrollBar.pack(side="right",fill="y")
+    
+    def resize_frame(self,e):
+        self.canvas.itemconfig(self.scrollFrameID, width=e.width)
+
 
 if __name__ == "__main__" :
     import time
