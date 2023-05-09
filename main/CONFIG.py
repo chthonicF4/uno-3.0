@@ -1,6 +1,6 @@
 win_font = "Cascadia Code SemiBold"
 win_palete = ("#2d3142", "#bfc0c0", "#ffffff", "#F7630C", "#4f5d75")
-win_width,win_height =  1280 ,720 
+win_width,win_height =  500 ,500 
 win_title = "UNO 3.0"
 network_delay = 0.05 #secconds
 action_delay = 0.5 # secconds

@@ -242,7 +242,8 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
 
     CURRENT_FRAME.frame.destroy()
 
-    # window setup
+    #  ------- window setup ----------
+
     root.minsize(width=900,height=650)
     root.columnconfigure(weight=1,index=0)
     root.rowconfigure(weight=1,index=0)
@@ -277,7 +278,7 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
         print(id)
         sock.send(id,"chooseCard")
 
-    # dumy deck
+    # deck
     client_deck = g_widgets.hand_gui(
         master=main_grid,
         bg="blue",
@@ -287,6 +288,18 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
         cards=[]
     )
     client_deck.frame.grid(row=1,column=0,sticky=tk.EW)
+
+    # pickup card 
+    pickupCard = g_widgets.cardButton(
+        master=side_bar,
+        bg="yellow",
+        on_click=send_id,
+        name=-1,
+        width=164,
+        height=256,
+        path= root_dir + r'\\assets\\cards\\back.png'
+    )
+    pickupCard.place(x=50,y=50)
 
     def get_server_requests():
         global TEMP_DISCARD_PILE,TEMP_PLAYER_HAND,TEMP_PLAYERS_HAND_SIZES
@@ -332,10 +345,12 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
         elif flag == "chooseCard":
             # print hand and ask for card choice by id (also check if id is in hand)
             client_deck.enable()
+            pickupCard.enable()
 
         elif flag == "turnend":
-            client_deck.remove_card(msg)
+            if not msg == -1 : client_deck.remove_card(msg)
             client_deck.disable()
+            pickupCard.dissable()
         
         # CHOOSE A COLOUR 
 

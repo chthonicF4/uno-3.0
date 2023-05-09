@@ -2,53 +2,60 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image , ImageTk
 
+class cardButton():
+    def __init__(self,path,master,name,on_click,width,height,bg):
+        self.path = path
+        self.name = name
+        self.width = int(width)
+        self.height = int(height)
+
+        # image stuff
+
+        # open image 
+        self.img = Image.open(self.path)
+        #resize it
+        self.img.thumbnail((self.width,self.height))
+        # make it into a tk compatiable image
+        self.img = ImageTk.PhotoImage(self.img)
+        self.button = tk.Button(
+            master=master,
+            width=self.width,height=self.height,
+            image=self.img,
+            command= lambda : on_click(name),
+            #name=str(name),
+            state="normal",
+            relief="flat",
+            bd=0,
+            anchor=tk.NW,
+            bg=bg
+            )   
+
+    def place(self,**k):
+        x = k.get("x")
+        y = k.get("y")
+        self.button.place(x=x,y=y)
+
+    def resize(self,new_width,new_height):
+        self.width = int(new_width)
+        self.height = int(new_height)
+        self.img = Image.open(self.path)
+        self.img.thumbnail((self.width,self.height))
+        self.img = ImageTk.PhotoImage(self.img)
+        self.button.config(width=self.width,height=self.height,image=self.img)
+    
+    def enable(self):
+        self.button['state'] = tk.NORMAL
+
+    def dissable(self) :
+        self.button['state'] = tk.DISABLED
+
 class hand_gui():
-
-    class card_img():
-        def __init__(self,path,master,name,on_click,width,height,bg):
-            self.path = path
-            self.name = name
-            self.width = int(width)
-            self.height = int(height)
-
-            # image stuff
-
-            # open image 
-            self.img = Image.open(self.path)
-            #resize it
-            self.img.thumbnail((self.width,self.height))
-            # make it into a tk compatiable image
-            self.img = ImageTk.PhotoImage(self.img)
-            self.button = tk.Button(
-                master=master,
-                width=self.width,height=self.height,
-                image=self.img,
-                command= lambda : on_click(name),
-                #name=str(name),
-                state="normal",
-                relief="flat",
-                bd=0,
-                anchor=tk.NW,
-                bg=bg
-                )   
-
-        def place(self,**k):
-            x = k.get("x")
-            y = k.get("y")
-            self.button.place(x=x,y=y)
-
-        def resize(self,new_width,new_height):
-            self.width = int(new_width)
-            self.height = int(new_height)
-            self.img = Image.open(self.path)
-            self.img.thumbnail((self.width,self.height))
-            self.img = ImageTk.PhotoImage(self.img)
-            self.button.config(width=self.width,height=self.height,image=self.img)
                 
     def __init__(self,cards,on_click,width,height,master,bg):
         self.widgets = []
         self.frame = tk.Frame(width=width,height=height,master=master,bg=bg)
         self.funct_out = on_click
+        self.enabled = True
         self.width = width
         self.height = height
         self.card_height = (self.height*0.8)
@@ -102,8 +109,10 @@ class hand_gui():
 
     def add_cards(self,cards:list):
         for card in cards : 
-            self.widgets.append(self.card_img(card[0],self.frame,card[1],self.funct_out,self.card_width,self.card_height,self.bg))
+            self.widgets.append(cardButton(card[0],self.frame,card[1],self.funct_out,self.card_width,self.card_height,self.bg))
         self.draw_cards()
+        if self.enabled == True : self.enable()
+        else : self.disable()
     
     def remove_card(self,name):
         for index , card in enumerate(self.widgets) :
@@ -147,10 +156,12 @@ class hand_gui():
     def enable(self):
         for widget in self.widgets :
             widget.button['state'] = tk.NORMAL
+        self.enabled = True
 
     def disable(self):
         for widget in self.widgets :
             widget.button['state'] = tk.DISABLED
+        self.enabled = False
 
 class scrollableFrame():
     def __init__(self,master,bg):
@@ -191,6 +202,10 @@ class scrollableFrame():
     
     def resize_frame(self,e):
         self.canvas.itemconfig(self.scrollFrameID, width=e.width)
+
+class cardImage():
+    def __init__(self):
+        pass
 
 
 if __name__ == "__main__" :
