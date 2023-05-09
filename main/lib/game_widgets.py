@@ -204,8 +204,38 @@ class scrollableFrame():
         self.canvas.itemconfig(self.scrollFrameID, width=e.width)
 
 class cardImage():
-    def __init__(self):
+    def __init__(self,master,bg,path,width,height):
+
+        self.width = int(width)
+        self.height = int(height)
+
+        self.make_image(path)
+
+        self.lable = tk.Label(
+            master=master,
+            bg=bg,
+            image= self.img,
+            width=self.width,
+            height=self.height,
+            highlightthickness=0,
+            bd=0
+        )
         pass
+
+    def make_image(self,path):
+        self.path = path
+        # open image 
+        self.img = Image.open(self.path)
+        #resize it
+        self.img.thumbnail((self.width,self.height))
+        # make it into a tk compatiable image
+        self.img = ImageTk.PhotoImage(self.img)
+    
+    def place(self,**k):
+        x = k.get('x')
+        y = k.get('y')
+        self.lable.place(x=x,y=y)
+        
 
 
 if __name__ == "__main__" :

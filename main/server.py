@@ -213,6 +213,7 @@ def can_place_card(card1:card,card2:card): #reurns bool , if 2 cards are compati
 def request_card_choice(conn:ntwk.connection):
     # send request to client
     print(f"requesting card from player {conn}")
+    time.sleep(CONFIG.action_delay)
     conn.send("","chooseCard")
     data = conn.recv()
     print(data)
