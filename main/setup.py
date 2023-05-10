@@ -1,7 +1,7 @@
 import os ,pickle
 
 def runSetup():
-    print('running one time setup\n',fb='cyan',ut='bold')
+    print('running one time setup\n')
     print('installing required librays')
     os.system('cmd /c pip install pillow')
     print('loading assets')
