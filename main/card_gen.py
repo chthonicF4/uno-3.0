@@ -71,15 +71,7 @@ for colour in ["yellow","red","blue","green"] :
 
 order += [None]*8
 
-
-root = tk.Tk()
-root.title("loading")
-root.geometry("620x50")
-
 number = 0
-
-loading_bar = loading_bars.win_loadingbar(root,number/len(order),15,"loading card assets",CONFIG.win_font,24,fg=CONFIG.win_palete[3],bg=CONFIG.win_palete[1])
-loading_bar.pack()
 
 def gen_cards() :
     for grid_y in range(0,card_grid_height):
@@ -99,13 +91,11 @@ def gen_cards() :
             
             bar = loading_bars.loadingbar(number/len(order),10,"loading card assets")
 
-            loading_bar.config(text=bar)
-            root.update()
+            print(bar,end='\r')
     time.sleep(0.5)
     return
 
 gen_cards()
-root.destroy()
 
         
 

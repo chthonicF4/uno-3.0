@@ -1,5 +1,5 @@
 import tkinter as tk , main.CONFIG as CONFIG , time
-
+import main.setup
 global stop ,choice
 stop = False
 choice = ""

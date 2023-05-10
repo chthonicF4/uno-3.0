@@ -4,14 +4,12 @@ import threading as thrd, queue as thrd_queue ,time ,os
 
 if __name__ == "__main__" :
     import lib.networking as ntwk ,tkinter as tk ,CONFIG  ,lib.game_widgets as g_widgets# networking functions and classes
-    from lib.card import * # imports the classes used for cards and decks
-    import card_gen # run card gen 
+    from lib.card import * # imports the classes used for cards and decks 
 
     
 else :
     import main.lib.networking as ntwk , tkinter as tk , main.CONFIG as CONFIG , main.lib.game_widgets as g_widgets # networking functions and classes
     from main.lib.card import * # imports the classes used for cards and decks
-    import main.card_gen # run card gen 
 
 # --------- WINDOW STUFF -------------
 
