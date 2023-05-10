@@ -314,8 +314,6 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
 
     def get_server_requests():
         global TEMP_DISCARD_PILE,TEMP_PLAYER_HAND,TEMP_PLAYERS_HAND_SIZES
-        if not recv_queue.queue == [] :
-            print(recv_queue.queue)
         try: 
             msg , flag = recv_queue.get_nowait()
         except thrd_queue.Empty :
