@@ -99,8 +99,10 @@ def on_info_submit(**k):
     
     # start listen thread
     queue = thrd_queue.Queue()
-    def recv_thread_func(sock,queue):
-        while True : queue.put(sock.recv())
+    def recv_thread_func(sock,queue:thrd_queue.Queue):
+        while True :
+            data  = sock.recv()
+            queue.put_nowait(data)
     
     recv_thread = thrd.Thread(target=recv_thread_func,daemon=True,name="recv thread",args=(sock,queue))
     recv_thread.start()
@@ -288,6 +290,7 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
         cards=[]
     )
     client_deck.frame.grid(row=1,column=0,sticky=tk.EW)
+    client_deck.disable()
 
     # pickup card 
     pickupCard = g_widgets.cardButton(
@@ -301,8 +304,20 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
     )
     pickupCard.place(x=50,y=50)
 
+    # discard card 
+    discard_card = g_widgets.cardImage(
+        master=side_bar,
+        bg='yellow',
+        path = root_dir + r'\\assets\\cards\\back.png',
+        width=164,
+        height=256
+    )
+    discard_card.place(x=50,y=300)
+
     def get_server_requests():
         global TEMP_DISCARD_PILE,TEMP_PLAYER_HAND,TEMP_PLAYERS_HAND_SIZES
+        if not recv_queue.queue == [] :
+            print(recv_queue.queue)
         try: 
             msg , flag = recv_queue.get_nowait()
         except thrd_queue.Empty :
@@ -324,6 +339,7 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
             new_cards = [(root_dir+"\\"+card.asset_path,card.ID) for card in TEMP_PLAYER_HAND.deck]
             new_cards = [card for card in new_cards if card[1] not in old_cards]
             client_deck.add_cards(new_cards)
+            discard_card.update_card(root_dir + '\\' +TEMP_DISCARD_PILE.deck[0].asset_path)
             pass
 
 
@@ -343,6 +359,8 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
         # CHOOSE CARD
                 
         elif flag == "chooseCard":
+            # send message recive to server
+            sock.send(f'recived {flag}','confirm')
             # print hand and ask for card choice by id (also check if id is in hand)
             client_deck.enable()
             pickupCard.enable()
@@ -374,6 +392,8 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
 
         else :
             pass
+
+        msg,flag = '',''
 
     def frame_updates(framerate):
 

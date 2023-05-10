@@ -235,6 +235,10 @@ class cardImage():
         x = k.get('x')
         y = k.get('y')
         self.lable.place(x=x,y=y)
+
+    def update_card(self,path):
+        self.make_image(path)
+        self.lable.configure(image=self.img)
         
 
 

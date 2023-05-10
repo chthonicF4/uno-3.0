@@ -214,7 +214,12 @@ def request_card_choice(conn:ntwk.connection):
     # send request to client
     print(f"requesting card from player {conn}")
     time.sleep(CONFIG.action_delay)
-    conn.send("","chooseCard")
+    while True :
+        conn.send("","chooseCard")
+        data = conn.recv()
+        if data[1] == 'confirm' :
+            break
+        time.sleep(CONFIG.network_delay)
     data = conn.recv()
     print(data)
     return data[0]
@@ -341,14 +346,11 @@ def client_turn() : # executed the stuff for a clients turn (which client is pas
 
         client.conn.send(chosen_id,"turnend")
         time.sleep(CONFIG.network_delay)
-                    
-
-    # send game update to all clients to show changes
-    game_update()
 
 
     # once card has been placed check if the card is black , if it is then get the client to choose a colour
     if discard_pile.deck[0].colour == "black" :
+        game_update()
         chosen_colour = client_choose_colour(client.conn)
         print(f"chosen colour : {colours[chosen_colour[0]]}")
         discard_pile.deck[0].update(colour = colours[chosen_colour[0]]) 
@@ -374,8 +376,9 @@ def play_main_loop():
         clients_turn = players[TURN_POINTER].nick
         brodcast(f"it is {clients_turn}'s turn","disp")
         client_turn()
+        time.sleep(CONFIG.action_delay)
         TURN_POINTER += TURN_POINTER_STEP
-        if TURN_POINTER >= len(players) :
+        if abs(TURN_POINTER) >= len(players) :
             TURN_POINTER = (TURN_POINTER%len(players))*len(players)
         time.sleep(action_delay)
     
