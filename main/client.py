@@ -273,6 +273,7 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
         bg="green",
     )
     players_frame.container.grid(row=0,column=0,sticky=tk.NSEW)
+    players_frame.scrollFrame.columnconfigure(index=0,weight=1)
 
     def send_id(id):
         print(id)
@@ -314,8 +315,6 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
 
     def get_server_requests():
         global TEMP_DISCARD_PILE,TEMP_PLAYER_HAND,TEMP_PLAYERS_HAND_SIZES
-        if not recv_queue.queue == [] :
-            print(recv_queue.queue)
         try: 
             msg , flag = recv_queue.get_nowait()
         except thrd_queue.Empty :
@@ -334,10 +333,31 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
             TEMP_PLAYER_HAND = msg[1]
             TEMP_DISCARD_PILE = msg[2]
             # then display the game
+
+            # your hand
             new_cards = [(root_dir+"\\"+card.asset_path,card.ID) for card in TEMP_PLAYER_HAND.deck]
             new_cards = [card for card in new_cards if card[1] not in old_cards]
             client_deck.add_cards(new_cards)
             discard_card.update_card(root_dir + '\\' +TEMP_DISCARD_PILE.deck[0].asset_path)
+            # other players hands
+
+            try : 
+                for index , player in enumerate(playerHands) :
+                    player.setNumber(TEMP_PLAYERS_HAND_SIZES[index][1])
+            except :
+                playerHands  = [g_widgets.playerHand(
+                        master=players_frame.scrollFrame,
+                        seporatorColour=CONFIG.win_palete[1],
+                        bg=CONFIG.win_palete[0],
+                        textColour=CONFIG.win_palete[3],
+                        index=index,
+                        name=player[0],
+                        count=player[1],
+                        font = CONFIG.win_font,
+                        path = root_dir + r'\\assets\\cards\\back.png'
+                    ) for index,player in enumerate(TEMP_PLAYERS_HAND_SIZES)]
+                
+            
             pass
 
 
@@ -397,7 +417,7 @@ def main_loop(sock:ntwk.connection,server_addr,root2:tk.Tk,recv_queue:thrd_queue
 
         get_server_requests()
         client_deck.update(framerate)
-
+                                                                    #heheh
         pass
 
     def mainloop():

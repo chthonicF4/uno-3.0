@@ -240,34 +240,138 @@ class cardImage():
         self.make_image(path)
         self.lable.configure(image=self.img)
         
+class playerHand():
+
+    def __init__(self,master,seporatorColour,bg,textColour,index:int,name:str,count:int,font:str,path:str):
+        self.path = path
+        self.bg = bg
+        self.numb = count
+        self.container = tk.Frame(
+            master=master,
+            bg=bg,
+            highlightcolor=seporatorColour,
+            highlightthickness=2
+        )
+        self.container.columnconfigure(index=1,weight=1)
+        self.nameFrame = tk.Frame(
+            master=self.container,
+            bg=bg
+        )
+        self.nameFrame.grid(row=0,column=0)
+        self.indexLable = tk.Label(
+            master=self.nameFrame,
+            bg=bg,
+            text=f'P{index} :',
+            font=(font,14),
+            fg=textColour
+            )
+        self.nameLable = tk.Label(
+            master=self.nameFrame,
+            bg=bg,
+            text=f'{name}',
+            font=(font,14),
+            fg=textColour
+            )
+        self.handFrame = tk.Frame(
+            master=self.container,
+            bg=bg,
+            height=75
+
+        )
+        self.handFrame.grid(row=0,column=1,sticky='NSEW',padx=10,pady=10)
+
+        self.setNumber(numb=count)
+
+        self.handFrame.bind("<Configure>", self.resize)
+        
+        self.indexLable.pack(anchor=tk.W)
+        self.nameLable.pack()
+
+    def drawCards(self):
+        numbCards = len(self.cardWidgets)
+        if numbCards == 0 :
+            return
+        if numbCards == 1 :
+            self.cardWidgets[0].place(x=(self.width-self.cardWidth)/2,y=0)
+            return
+        spacing = (self.width-self.cardWidth)/(numbCards -1)
+        if spacing > self.cardWidth :
+            offset = (self.width-(self.cardWidth*numbCards))/2
+            spacing = self.cardWidth
+        else : offset = 0
+        for index,card in enumerate(self.cardWidgets):
+            card.place(x=(index*spacing + offset),y=0)
+            
+        
+    def calculateDims(self,*k):
+        if len(k)>0 :
+            self.width = k[0].width
+            if self.height == k[0].height :
+                return True
+            else:
+                self.height = k[0].height
+        else:
+            self.height = 20
+            self.width = 20
+        self.cardWidth = (162/254)*self.height
+
+    def resize(self,event):
+        if not self.calculateDims(event):
+            self.cardWidgets = [cardImage(
+                master=self.handFrame,
+                bg=self.bg,
+                path=self.path,
+                width=self.cardWidth,
+                height=self.height
+                ) for number in range(self.numb)]
+        self.drawCards()
+
+        
+
+    def setNumber(self,numb):
+        self.numb = numb
+        self.calculateDims()
+        self.cardWidgets = [cardImage(
+            master=self.handFrame,
+            bg=self.bg,
+            path=self.path,
+            width=self.cardWidth,
+            height=self.height
+            ) for number in range(numb)]
+        self.drawCards()
+        pass
+
 
 
 if __name__ == "__main__" :
     import time
     root = tk.Tk()
     root.geometry("500x500")
-    path = r"C:\Users\dan\OneDrive\Documents\GitHub\uno 3.0\main\assets\cards\red\8.png"
-    cards = [
-        (path,1)
-   
-    ]
-
-    # card dims width=164 , height=252
-
-
-    def add(id):
-        print(id)
-        deck.add_cards([(path,2)])
-
-
     root.columnconfigure(weight=1,index=0)
     root.rowconfigure(weight=1,index=0)
 
-    deck = hand_gui(master=root,cards=cards,on_click=add,width=830,height=170,bg="white")
-    deck.frame.grid(column=0,row=0,sticky=tk.NSEW)
+    cool = scrollableFrame(master=root,bg='green')
+
+    dingus = [playerHand(
+        master=cool.scrollFrame,
+        bg='white',
+        textColour='black',
+        seporatorColour = 'grey',
+        index=numb,
+        name='SHOBON',
+        count=numb,
+        font='helvetica',
+        path=r"C:\Users\DanTrinder\Documents\GitHub repositrys\uno-3.0\main\assets\cards\back.png"
+    ) for numb in range(8)]
+
+    cool.scrollFrame.columnconfigure(index=0,weight=1)
+
+    for index , thing in enumerate(dingus) :
+        thing.container.grid(row=index,column=0,sticky='EW')
+
+    cool.container.grid(row=0,column=0,sticky=tk.NSEW)
 
     def frame_update(framerate):
-        deck.update(framerate)
         pass
 
     def mainloop():
